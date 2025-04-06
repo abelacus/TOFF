@@ -5,7 +5,7 @@ import requests
 qb_base_url = "http://ip.address:port"
 username = "username"
 password = "password"
-torrent_directory = "/mnt/drive/Downloads"
+torrent_directory = "/mnt/drive/Downloads" #the system directory to traverse for files
 
 ignore_directories = ['/data/downloads'] 	#add directories you want to skip searching over here. e.g. if you know there are no orphan files in /data/downloads skip requests for torrent details which are saved to that directory
 											# theses are directories as seen by the torrent client and before path translation
