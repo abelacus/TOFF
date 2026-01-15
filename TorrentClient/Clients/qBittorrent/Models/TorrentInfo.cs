@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TorrentClient.Clients.qBittorrent.Models
 {
-    public internal record TorrentInfo
+    internal record TorrentInfo
     {
         public int added_on;
         public int amount_left;

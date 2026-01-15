@@ -1,35 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
+using TorrentClient.Attributes;
 using TorrentClient.Clients.qBittorrent.Models;
 using TorrentClient.Models;
 
 namespace TorrentClient.Clients.qBittorrent
 {
-    public class qBittorrentClient : ITorrentClient
+    [ClientName("qBittorrent")]
+    public class qBittorrentClient : TorrentClientBase
     {
-        public static string ClientName => "qBittorrent";
-
         private HttpClient _httpClient;
-        private readonly TorrentClientConfig _clientConfig;
         private CookieContainer _cookieContainer;
         private HttpClientHandler _httpClientHandler;
         private bool isLoggedIn = false;
 
 
-        public qBittorrentClient(TorrentClientConfig clientConfig)
+        public qBittorrentClient(TorrentClientConfig clientConfig) : base(clientConfig)
         {
             _cookieContainer = new CookieContainer();
             _httpClientHandler = new HttpClientHandler() { CookieContainer = _cookieContainer };
             _httpClient = new HttpClient(_httpClientHandler) { BaseAddress = new Uri(clientConfig.ApiURL) };
-            _clientConfig = clientConfig;
         }
 
-        public async void ConnectToClient()
+        public override async void ConnectToClient()
         {
             var loginDetails = new FormUrlEncodedContent(new[]
             {
@@ -45,7 +44,7 @@ namespace TorrentClient.Clients.qBittorrent
         }
 
 
-        public async Task<FileDetails[]> GetFilesForTorrent(string torrentHash)
+        public override async Task<FileDetails[]> GetFilesForTorrent(string torrentHash)
         {
             if (!isLoggedIn)
             {
@@ -64,7 +63,7 @@ namespace TorrentClient.Clients.qBittorrent
             return files.ToArray();
         }
 
-        public async Task<TorrentDetails[]> GetTorrentDetails()
+        public override async Task<TorrentDetails[]> GetTorrentDetails()
         {
             if (!isLoggedIn)
             {

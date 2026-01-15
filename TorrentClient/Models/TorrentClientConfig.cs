@@ -8,9 +8,26 @@ namespace TorrentClient.Models
 {
     public record TorrentClientConfig ()
     {
-        public string ApiURL;
-        public bool HasAuthentication;
-        public string Username;
-        public string Password;
+        public string? ApiURL;
+        public bool HasAuthentication = false;
+        public string? Username;
+        public string? Password;
+
+        public string[] ToDetailsArray()
+        {
+            if (!HasAuthentication)
+            {
+                return [
+                    "Requires Authentication: False"
+                    ];
+            }
+
+            return [
+                "Requires Authentication: True",
+                "API Url: " + ApiURL,
+                "Username: " + Username,
+                "Password: " + Password.Replace(@"\w", "*")
+            ];
+        }
     }
 }
