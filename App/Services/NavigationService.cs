@@ -39,9 +39,16 @@ namespace TOFF.Services
             app.Dispose();
         }
 
-        public void RunDialog(Dialog view)
+        /// <summary>
+        /// Runs a dialog and returns the index of the button pressed, or -1 if it exits without a result.
+        /// </summary>
+        /// <param name="view"></param>
+        /// <returns></returns>
+        public int RunDialog(Dialog view)
         {
             application.Run(view);
+            return view.Result ?? -1;
+
         }
 
         public void NavigateTo<T>() where T : View

@@ -14,6 +14,7 @@ namespace TOFF.Services
         public FileDetails[]? torrentFiles;
         public TorrentClientConfig torrentClientConfig;
         public string clientSelection;
+        public string? torrentDirectory;
         public bool exit = false;
 
         public AppStateService(TorrentClientService clientFactory)

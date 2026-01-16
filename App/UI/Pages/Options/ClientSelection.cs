@@ -22,6 +22,7 @@ namespace TOFF.UI.Pages.Options
 
             Title = "Select Torrent Client";
 
+            //TODO: replace with OptionSelector
             string currentSelection = _appState.clientSelection;
             var clientsList = new ListView()
             {

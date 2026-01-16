@@ -18,7 +18,8 @@ namespace TorrentClient.Models
             if (!HasAuthentication)
             {
                 return [
-                    "Requires Authentication: False"
+                    "Requires Authentication: False",
+                    "API Url: " + (ApiURL ?? "Not Set"),
                     ];
             }
 

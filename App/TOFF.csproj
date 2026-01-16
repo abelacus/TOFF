@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
-    <PackageReference Include="Terminal.Gui" Version="2.0.0-develop.4797" />
+    <PackageReference Include="Terminal.Gui" Version="2.0.0-develop.4824" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,7 +19,7 @@
   </ItemGroup>
 
     <ItemGroup>
-	    <EmbeddedResource Include="tui\config.json" />
+	    <EmbeddedResource Include=".tui\config.json" />
     </ItemGroup>
 
 	<ItemGroup>
@@ -27,7 +27,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="tui\" />
+    <Folder Include=".tui\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include=".tui\config.json" />
   </ItemGroup>
 
 </Project>
