@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using Terminal.Gui.Drawing;
+using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 using TOFF.Models;
@@ -106,7 +107,7 @@ namespace TOFF.UI.Pages.Options
 
                     errorDialog.Add(errorLabel);
                     errorDialog.AddButton(new() { Title = "OK" });
-                    errorLabel.HorizontalScrollBar.Visible = false;
+                    errorLabel.VerticalScrollBar.Visible = false;
                     _navigationService.RunDialog(errorDialog);
                     e.Handled = true;
                     return;
@@ -161,8 +162,18 @@ namespace TOFF.UI.Pages.Options
 
                 textField.TextChanged += (s, e) =>
                 {
-                    result = textField.Text.ToString();
+                    result = textField.Text;
                 };
+
+                //required for save on enter
+                textField.KeyDown += (_, e) =>
+                {
+                    if (e.KeyCode == Key.Enter)
+                    {
+                        editDialogue.Result = 1;
+                    }
+                };
+
                 editDialogue.Add(textField);
             }
             else
@@ -183,15 +194,36 @@ namespace TOFF.UI.Pages.Options
                     result = item.Presets[(int)ev.Value];
                 };
 
+                //required for save on enter
+#pragma warning disable TGUI001 // Accepting event handler should set Handled = true. ignore because we still want dialog to close afterwards
+                optionsSelector.Accepting += (_, e) =>
+                {
+                    editDialogue.Result = 1;
+                };
+#pragma warning restore TGUI001 // Accepting event handler should set Handled = true
+
                 editDialogue.Add(optionsSelector);
             }
 
 
-                editDialogue.AddButton(new() { Title = "Cancel" });
-            editDialogue.AddButton(new() { Title = "OK" });
+            editDialogue.AddButton(new() { Title = "Cancel", IsDefault = false });
+            editDialogue.AddButton(new() { Title = "OK", IsDefault = true });
 
 
             _navigationService.RunDialog(editDialogue);
+
+            if(editDialogue.Result == null)
+            {
+                if(editDialogue.Canceled == true)
+                { 
+                    return item.Value;
+                }
+                if(editDialogue.Canceled == false)
+                {
+                    return result;
+                }
+            }
+
 
             if(editDialogue.Result == 1)
             {
