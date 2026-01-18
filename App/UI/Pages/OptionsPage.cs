@@ -21,25 +21,27 @@ namespace TOFF.UI.Pages
 
             var options = new[]
             {
-                new OptionsMenuItem
+                new DataSourceTreeNode
                 {
                     Text = "Torrent Client",
                     Tag = typeof(ClientSelection),
-                    currentValues = [_appState.clientSelection]
+                    DataDataSource = () => [_appState.clientSelection]
                 },
-                new OptionsMenuItem
+                new DataSourceTreeNode
                 {
                     Text = "Client Configuration",
                     Tag = typeof(ClientConfiguration),
-                    currentValues = _appState.torrentClientConfig.ToDetailsArray() ?? ["Not Configured"]
+                    DataDataSource = () => _appState.torrentClientConfig.ToDetailsArray() ?? ["Not Configured"]
                 },
-                new OptionsMenuItem {
-                    Text = "Torrent Directory"
+                new DataSourceTreeNode {
+                    Text = "Torrent Directory",
+                    Tag = typeof(TorrentDirectorySelection),
+                    DataDataSource = () => [_appState.torrentDirectory ?? "Not Set"]
                 },
-                new OptionsMenuItem {
+                new DataSourceTreeNode {
                     Text = "Directories to ignore"
                 },
-                new OptionsMenuItem {
+                new DataSourceTreeNode {
                     Text = "Path Translations"
                 },
             };
@@ -85,12 +87,10 @@ namespace TOFF.UI.Pages
             optionsTree.ObjectActivated += (_, entry) =>
             {
                 _navigationService.NavigateTo((Type)entry.ActivatedObject.Tag);
+                optionsTree.RebuildTree();
             };
 
             Add(optionsTree);
-
-
-
         }
     }
 }

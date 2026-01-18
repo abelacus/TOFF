@@ -27,6 +27,12 @@ namespace TOFF
                     services.AddTransient(page);
                 }
 
+                var popupTypes = Assembly.GetExecutingAssembly().GetTypes().Where(t => typeof(IPopup).IsAssignableFrom(t) && !t.IsInterface);
+                foreach (var popup in popupTypes)
+                {
+                    services.AddTransient(popup);
+                }
+
             })
             .Build();
 

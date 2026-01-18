@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Terminal.Gui.App;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
+using TOFF.UI;
 
 namespace TOFF.Services
 {
@@ -48,25 +49,28 @@ namespace TOFF.Services
         {
             application.Run(view);
             return view.Result ?? -1;
-
         }
 
         public void NavigateTo<T>() where T : View
         {
-            windowStack.Add(typeof(T));
-
-            _top.RemoveAll();
-            var page = (T)_serviceProvider.GetRequiredService(typeof(T));
-            _top.Add(page);
+            NavigateTo(typeof(T));
         }
 
         public void NavigateTo(Type nav)
         {
-            windowStack.Add(nav);
-
-            _top.RemoveAll();
-            var page = (View)_serviceProvider.GetRequiredService(nav);
-            _top.Add(page);
+            if (typeof(IPopup).IsAssignableFrom(nav))
+            {
+                var popup = (IPopup)_serviceProvider.GetRequiredService(nav);
+                
+                RunDialog(popup.popupWindow);
+            }
+            else
+            {
+                windowStack.Add(nav);
+                _top.RemoveAll();
+                var page = (View)_serviceProvider.GetRequiredService(nav);
+                _top.Add(page);
+            }
         }
 
         public void NavigateBack()
