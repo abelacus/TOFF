@@ -90,10 +90,10 @@ namespace TOFF.UI.Pages.Options
                         errorDialog.Add(errorLabel);
                         errorDialog.AddButton(new() { Title = "OK" });
                         _navigationService.RunDialog(errorDialog);
-                    }
 
-                    e.Handled = true;
-                    return;
+                        e.Handled = true;
+                        return;
+                    }
                 }
                 if (configItems[0].Value.Length == 0)
                 {
