@@ -33,8 +33,7 @@ namespace TOFF.UI.Pages.Options
                 AllowsMarking = false,
                 AllowsMultipleSelection = false,
                 Width = Dim.Fill(),
-                Height = Dim.Fill() - 1,
-                BorderStyle = Terminal.Gui.Drawing.LineStyle.Single,
+                Height = Dim.Fill() - 2,
             };
 
             ignoreList.SetSource(ignoreListSource);
@@ -47,10 +46,18 @@ namespace TOFF.UI.Pages.Options
             Add(ignoreList);
 
             //shortcut bar
-            Bar shortcutBar = new Bar()
+            Line divider = new Line()
             {
                 X = 0,
                 Y = Pos.Bottom(ignoreList),
+                Length = Dim.Fill(),
+                Orientation = Orientation.Horizontal,
+            };
+
+            Bar shortcutBar = new Bar()
+            {
+                X = 0,
+                Y = Pos.Bottom(divider),
                 AlignmentModes = AlignmentModes.StartToEnd,
             };
 
@@ -77,7 +84,7 @@ namespace TOFF.UI.Pages.Options
 
             shortcutBar.Add(infoShortcut, addNewShortcut, backShortcut);
 
-            Add(shortcutBar);
+            Add(divider, shortcutBar);
 
             if(ignoreListSource.Count > 0)
             { 
