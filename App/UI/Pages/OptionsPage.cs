@@ -39,7 +39,9 @@ namespace TOFF.UI.Pages
                     DataDataSource = () => [_appState.torrentDirectory ?? "Not Set"]
                 },
                 new DataSourceTreeNode {
-                    Text = "Directories to ignore"
+                    Text = "Directories to ignore",
+                    Tag = typeof(IgnoreDirectorySelection),
+                    DataDataSource = () => _appState.IgnoreDirectories.Length > 0 ? [$"{_appState.IgnoreDirectories.Length} ignored directories"] : ["No ignored directories"]
                 },
                 new DataSourceTreeNode {
                     Text = "Path Translations"
