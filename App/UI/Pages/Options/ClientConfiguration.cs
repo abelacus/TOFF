@@ -13,12 +13,14 @@ namespace TOFF.UI.Pages.Options
     {
         private readonly AppStateService _appState;
         private readonly NavigationService _navigationService;
+
+        private ConfigItemValue[] configItems;
         public ClientConfiguration(AppStateService appState, NavigationService navigationService)
         {
             _appState = appState;
             _navigationService = navigationService;
 
-            ConfigItemValue[] configItems = new[] {
+            configItems = new[] {
                 new ConfigItemValue("Client API URL", _appState.torrentClientConfig.ApiURL ?? "", null),
                 new ConfigItemValue("Requires Authentication", _appState.torrentClientConfig.HasAuthentication.ToString(), new List<string>{"True", "False"}),
                 new ConfigItemValue("Username", _appState.torrentClientConfig.Username ?? "", null),
@@ -34,7 +36,7 @@ namespace TOFF.UI.Pages.Options
                 X = 0,
                 Y = 0,
                 Width = Dim.Fill(),
-                Height = Dim.Fill(1),
+                Height = Dim.Fill() - 2,
                 AllowsMarking = false,
                 AllowsMultipleSelection = false,
             };
@@ -54,16 +56,105 @@ namespace TOFF.UI.Pages.Options
                 }
             };
 
-            var backButton = new Button()
+            Add(configList);
+
+            Line divider = new Line()
             {
-                Title = "Back",
-                X = 1,
+                X = 0,
                 Y = Pos.Bottom(configList),
+                Length = Dim.Fill(),
+                Orientation = Orientation.Horizontal,
             };
 
+            Bar shortcutBar = new Bar()
+            {
+                X = 0,
+                Y = Pos.Bottom(divider),
+                AlignmentModes = AlignmentModes.StartToEnd,
+            };
+
+            Shortcut backShortcut = new Shortcut()
+            {
+                Action = SaveAndBack,
+                Key = Key.Esc,
+                Text = "Save and Back",
+            };
+
+            Shortcut discardShortcut = new Shortcut()
+            {
+                Action = DiscardAndBack,
+                Key = Key.Esc.WithShift,
+                Text = "Discard Changes",
+            };
+
+            shortcutBar.Add(backShortcut, discardShortcut);
+
+            Add(divider, shortcutBar);            
+        }
+
+        private void SaveAndBack()
+        {
+            var errorDialog = new Dialog()
+            {
+                Title = "Set required Variables",
+                X = Pos.Center(),
+                Y = Pos.Center(),
+            };
+
+            errorDialog.SetScheme(new Scheme(new Terminal.Gui.Drawing.Attribute(Color.BrightRed, Color.Black)));
+
+            if (bool.Parse(configItems[1].Value))
+            {
+                //create dialog saying to set unset variables
+                if (configItems[0].Value.Length == 0 || configItems[2].Value.Length == 0 || configItems[3].Value.Length == 0)
+                {
+                    var errorLabel = new Label()
+                    {
+                        Title = "All fields must be set when authentication is required.",
+                        X = Pos.Center(),
+                        Y = Pos.Center(),
+                        Height = 1,
+                        CanFocus = false,
+                    };
+                    errorDialog.Add(errorLabel);
+                    errorDialog.AddButton(new() { Title = "OK" });
+                    _navigationService.RunDialog(errorDialog);
+                    return;
+                }
+            }
+            if (configItems[0].Value.Length == 0)
+            {
+                var errorLabel = new Label()
+                {
+                    Title = "API URL cannot be empty.",
+                    Height = 1,
+                    X = 1,
+                    Y = 1,
+                };
+
+                errorDialog.Add(errorLabel);
+                errorDialog.AddButton(new() { Title = "OK" });
+                errorLabel.VerticalScrollBar.Visible = false;
+                _navigationService.RunDialog(errorDialog);
+                return;
+            }
 
 
-            backButton.Activating += (_, e) =>
+            //update global state and navigate back
+            _appState.torrentClientConfig = new TorrentClientConfig()
+            {
+                ApiURL = configItems[0].Value,
+                HasAuthentication = bool.Parse(configItems[1].Value),
+                Username = configItems[2].Value,
+                Password = configItems[3].Value,
+            };
+
+            _navigationService.NavigateBack();
+        }
+
+        private void DiscardAndBack()
+        {
+            if (configItems[0].Value.Length == 0 && (_appState.torrentClientConfig.ApiURL == null || _appState.torrentClientConfig.ApiURL.Length == 0))//don't let them return if an api url hasn't been set
             {
                 var errorDialog = new Dialog()
                 {
@@ -74,60 +165,26 @@ namespace TOFF.UI.Pages.Options
 
                 errorDialog.SetScheme(new Scheme(new Terminal.Gui.Drawing.Attribute(Color.BrightRed, Color.Black)));
 
-                if (bool.Parse(configItems[1].Value))
+                var errorLabel = new Label()
                 {
-                    //create dialog saying to set unset variables
-                    if (configItems[0].Value.Length == 0 || configItems[2].Value.Length == 0 || configItems[3].Value.Length == 0)
-                    {
-                        var errorLabel = new Label()
-                        {
-                            Title = "All fields must be set when authentication is required.",
-                            X = Pos.Center(),
-                            Y = Pos.Center(),
-                            Height = 1,
-                            CanFocus = false,
-                        };
-                        errorDialog.Add(errorLabel);
-                        errorDialog.AddButton(new() { Title = "OK" });
-                        _navigationService.RunDialog(errorDialog);
-
-                        e.Handled = true;
-                        return;
-                    }
-                }
-                if (configItems[0].Value.Length == 0)
-                {
-                    var errorLabel = new Label()
-                    {
-                        Title = "API URL cannot be empty.",
-                        Height = 1,
-                        X = 1,
-                        Y = 1,
-                    };
-
-                    errorDialog.Add(errorLabel);
-                    errorDialog.AddButton(new() { Title = "OK" });
-                    errorLabel.VerticalScrollBar.Visible = false;
-                    _navigationService.RunDialog(errorDialog);
-                    e.Handled = true;
-                    return;
-                }
-
-
-                //update global state and navigate back
-                _appState.torrentClientConfig = new TorrentClientConfig()
-                {
-                    ApiURL = configItems[0].Value,
-                    HasAuthentication = bool.Parse(configItems[1].Value),
-                    Username = configItems[2].Value,
-                    Password = configItems[3].Value,
+                    Title = "API URL cannot be empty.",
+                    Height = 1,
+                    X = 1,
+                    Y = 1,
                 };
 
-                e.Handled = true;
-                _navigationService.NavigateBack();
-            };
+                errorDialog.Add(errorLabel);
+                errorDialog.AddButton(new() { Title = "OK" });
+                errorLabel.VerticalScrollBar.Visible = false;
+                _navigationService.RunDialog(errorDialog);
+                return;
+            }
 
-            Add(configList, backButton);
+            if(_appState.torrentClientConfig.ApiURL == null || _appState.torrentClientConfig.ApiURL.Length == 0) {
+                _appState.torrentClientConfig.ApiURL = configItems[0].Value;
+            }
+
+            _navigationService.NavigateBack();
         }
 
         private string EditConfigItem(ConfigItemValue item)
