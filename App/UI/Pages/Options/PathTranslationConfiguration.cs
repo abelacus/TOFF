@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Text;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
@@ -135,6 +133,23 @@ namespace TOFF.UI.Pages.Options
                 Width = Dim.Percent(50),
             };
 
+            Button directorySelectButton = new Button()
+            {
+                X = 0,
+                Y = Pos.Bottom(localPath),
+                Title = "Select Folder"
+            };
+
+            directorySelectButton.Activating += (_, e) =>
+            {
+                string? selectedDirectory = ShowFolderSelectPopup();
+                if(selectedDirectory != null)
+                {
+                    localPath.Text = selectedDirectory;
+                }
+                e.Handled = true;
+            };
+
             //add dialog buttons
             Button cancelButton = new Button()
             {
@@ -184,7 +199,7 @@ namespace TOFF.UI.Pages.Options
 
 
 
-            translationWizard.Add(description, clientPathLabel, clientPath, localPathLabel, localPath);
+            translationWizard.Add(description, clientPathLabel, clientPath, localPathLabel, localPath, directorySelectButton);
             translationWizard.AddButton(cancelButton);
             translationWizard.AddButton(submitButton);
 
@@ -351,6 +366,23 @@ namespace TOFF.UI.Pages.Options
                 Text = observable[i].Value,
             };
 
+            Button directorySelectButton = new Button()
+            {
+                X = 0,
+                Y = Pos.Bottom(localPath),
+                Title = "Select Folder"
+            };
+
+            directorySelectButton.Activating += (_, e) =>
+            {
+                string? selectedDirectory = ShowFolderSelectPopup();
+                if (selectedDirectory != null)
+                {
+                    localPath.Text = selectedDirectory;
+                }
+                e.Handled = true;
+            };
+
             //add dialog buttons
             Button cancelButton = new Button()
             {
@@ -404,7 +436,7 @@ namespace TOFF.UI.Pages.Options
                 }
             };
 
-            updateWizard.Add(description, clientPathLabel, clientPath, localPathLabel, localPath);
+            updateWizard.Add(description, clientPathLabel, clientPath, localPathLabel, localPath, directorySelectButton);
             updateWizard.AddButton(cancelButton);
             updateWizard.AddButton(deleteButton);
             updateWizard.AddButton(submitButton);
@@ -460,6 +492,29 @@ namespace TOFF.UI.Pages.Options
                 translations[clientPath.Text] = localPath.Text;
                 UpdateListView();
             }
+        }
+
+        private string? ShowFolderSelectPopup()
+        {
+            var directorySelector = new OpenDialog()
+            {
+                OpenMode = OpenMode.Directory,
+                X = Pos.Center(),
+                Y = Pos.Center(),
+                AllowsMultipleSelection = false,
+
+            };
+
+            string? result = null;
+
+            directorySelector.FilesSelected += (_, ev) =>
+            {
+                result = ev.Dialog.Path;
+            };
+
+            _navigationService.RunDialog(directorySelector);
+            return result;
+
         }
 
     }
