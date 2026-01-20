@@ -44,7 +44,9 @@ namespace TOFF.UI.Pages
                     DataDataSource = () => _appState.IgnoreDirectories.Length > 0 ? [$"{_appState.IgnoreDirectories.Length} ignored directories"] : ["No ignored directories"]
                 },
                 new DataSourceTreeNode {
-                    Text = "Path Translations"
+                    Text = "Path Translations",
+                    Tag = typeof(PathTranslationConfiguration),
+                    DataDataSource = () => _appState.PathTranslations.Count > 0 ? [$"{_appState.PathTranslations.Count} translations"] : ["No path translations"]
                 },
             };
 
@@ -74,7 +76,14 @@ namespace TOFF.UI.Pages
                     {
                         //select next entry
                         var index = options.IndexOf(e => e.Text == parent.Text);
-                        e.Tree.GoTo(e.Tree.Objects.First(e => e.Text == options[index + 1].Text));
+                        if(index + 1 < options.Length)
+                        {
+                            e.Tree.GoTo(e.Tree.Objects.First(e => e.Text == options[index + 1].Text));
+                        }
+                        else
+                        {
+                            e.Tree.GoTo(parent);
+                        }
                     }
                     else
                     {

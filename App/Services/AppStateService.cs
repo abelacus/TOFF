@@ -16,6 +16,10 @@ namespace TOFF.Services
         public string clientSelection;
         public string? torrentDirectory;
         public string[] IgnoreDirectories = [];
+        /// <summary>
+        /// <see cref="TKey"/> is path as it appears in torrent client, <see cref="TValue"> is local path to translate to
+        /// </summary>
+        public Dictionary<string, string> PathTranslations = new Dictionary<string, string>();
         public bool exit = false;
 
         public AppStateService(TorrentClientService clientFactory)
