@@ -79,18 +79,20 @@ namespace TOFF.UI.Pages.Options
 
         private void AddNewTranslation()
         {
-            Wizard translationWizard = new Wizard()
+            Dialog translationWizard = new Dialog()
             {
                 Title = "Add Path Translation",
                 Width = Dim.Percent(50),
                 Height = Dim.Percent(50),
             };
 
-            WizardStep firstStep = new WizardStep()
+            Label description = new Label()
             {
-                Title = "From Path:",
-                NextButtonText = "Next",
-                HelpText = "The path you want to translate as it appears in the torrent client. In a Docker Compose file, this would be the 'destination' of a volume mount",
+                X = Pos.AnchorEnd() + 1,
+                Y = 0,
+                Width = Dim.Percent(40),
+                Height = 9,
+                Text = "The path you want to translate as it appears in the torrent client. In a Docker Compose file, this would be the part after the 'destination' of a volume mount",
             };
 
             Label clientPathLabel = new Label()
@@ -107,20 +109,10 @@ namespace TOFF.UI.Pages.Options
                 Width = Dim.Percent(50),
             };
 
-            firstStep.Add(clientPathLabel, clientPath);
-
-            translationWizard.AddStep(firstStep);
-
-            WizardStep secondStep = new WizardStep()
-            {
-                Title = "To Path:",
-                HelpText = "The destination path that the path should be translated to. In a Docker Compose file, this would be the part 'source' of a volume mount"
-            };
-
             Label localPathLabel = new Label()
             {
                 X = 0,
-                Y = 0,
+                Y = Pos.Bottom(clientPath),
                 Title = "To Path:"
             };
 
@@ -131,20 +123,60 @@ namespace TOFF.UI.Pages.Options
                 Width = Dim.Percent(50),
             };
 
-            //disable submit on enter when text fields are selected
-            //causes issues with duplicated accepting triggers if we don't
-            localPath.KeyDown += (_, e) =>
+            //add dialog buttons
+            Button cancelButton = new Button()
             {
-                if (e.KeyCode == Key.Enter)
+                Title = "Cancel",
+                IsDefault = false,
+            };
+
+            Button submitButton = new Button()
+            {
+                Title = "Submit",
+                IsDefault = true,
+            };
+
+            clientPath.KeyDown += (_, e) =>
+            {
+                if(e.KeyCode == Key.Enter)
                 {
+                    localPath.SetFocus();
                     e.Handled = true;
                 }
             };
 
-            secondStep.Add(localPathLabel, localPath);
-            translationWizard.AddStep(secondStep);
+            localPath.KeyDown += (_, e) =>
+            {
+                if (e.KeyCode == Key.Enter)
+                {
+                    submitButton.SetFocus();
+                    e.Handled = true;
+                }
+            };
 
-            translationWizard.Accepted += (_, e) =>
+            clientPath.HasFocusChanged += (_, e) =>
+            {
+                if (e.NewFocused == clientPath)
+                {
+                    description.Text = "The path you want to translate as it appears in the torrent client. In a Docker Compose file, this would be the 'destination' of a volume mount";
+                }
+            };
+
+            localPath.HasFocusChanged += (_, e) =>
+            {
+                if (e.NewFocused == localPath)
+                {
+                    description.Text = "The destination path that the path should be translated to. In a Docker Compose file, this would be the part 'source' of a volume mount";
+                }
+            };
+
+
+
+            translationWizard.Add(description, clientPathLabel, clientPath, localPathLabel, localPath);
+            translationWizard.AddButton(cancelButton);
+            translationWizard.AddButton(submitButton);
+
+            submitButton.Activating += (_, e) =>
             {
                 if(clientPath.Text.Length == 0)
                 {
@@ -175,37 +207,32 @@ namespace TOFF.UI.Pages.Options
                     errorDialog.AddButton(new() { Title = "No" });
                     errorDialog.AddButton(new() { Title = "Yes" });
                     errorLabel.VerticalScrollBar.Visible = false;
+                    _navigationService.RunDialog(errorDialog);
 
-                    int result = _navigationService.RunDialog(errorDialog);
-
-                    if(errorDialog.Canceled == true || result == 0)
-                    {
-                        e.Handled = false;
-                    }
-
-                    if(result == 1)
+                    if(errorDialog.Canceled == true || errorDialog.Result == 0)
                     {
                         e.Handled = true;
                     }
-                }
-                else
-                {
-                    e.Handled = true;
+
+                    if(errorDialog.Result == 1)
+                    {
+                        e.Handled = false;
+                    }
                 }
             };
 
             _navigationService.RunDialog(translationWizard);
-
+            
             if(translationWizard.Result == 1)
             {
                 translations[clientPath.Text] = localPath.Text;
             }
 
-
         }
 
         private void SaveAndBack()
         {
+            //TODO: save changes to app state
             _appState.PathTranslations = translations;
 
             _navigationService.NavigateBack();
