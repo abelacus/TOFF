@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
+using TOFF.Models;
 using TOFF.Services;
 
 namespace TOFF.UI.Pages.Options
@@ -16,6 +18,7 @@ namespace TOFF.UI.Pages.Options
         private readonly AppStateService _appState;
 
         private Dictionary<string, string> translations;
+        private ObservableCollection<KeyValueListItem> observable;
 
         public PathTranslationConfiguration(AppStateService appState, NavigationService navigationService)
         {
@@ -30,6 +33,15 @@ namespace TOFF.UI.Pages.Options
                 Y = 0,
                 Width = Dim.Fill(),
                 Height = Dim.Fill() - 2,
+            };
+
+            observable = new ObservableCollection<KeyValueListItem>(translations.Select(e => new KeyValueListItem(e)));
+
+            translationList.SetSource(observable);
+
+            translationList.OpenSelectedItem += (_, e) =>
+            {
+                UpdateTranslation((int)e.Item);
             };
 
             Add(translationList);
@@ -71,7 +83,7 @@ namespace TOFF.UI.Pages.Options
             };
 
             shortcutBar.Add(addNewShortcut, backShortcut, discardShortcut);
-            shortcutBar.SetFocus();
+            translationList.SetFocus();
 
             Add(divider, shortcutBar);
 
@@ -178,13 +190,35 @@ namespace TOFF.UI.Pages.Options
 
             submitButton.Activating += (_, e) =>
             {
-                if(clientPath.Text.Length == 0)
+                if (clientPath.Text.Length == 0)
                 {
-                    e.Handled = false;
+                    Dialog errorDialog = new Dialog()
+                    {
+                        Title = "Empty Client Path",
+                        X = Pos.Center(),
+                        Y = Pos.Center(),
+                    };
+
+                    errorDialog.SetScheme(new Scheme(new Terminal.Gui.Drawing.Attribute(Color.BrightRed, Color.Black)));
+
+                    var errorLabel = new Label()
+                    {
+                        Title = "From Path cannot be empty",
+                        Height = 1,
+                        X = 1,
+                        Y = 1,
+                    };
+
+                    errorDialog.Add(errorLabel);
+                    errorDialog.AddButton(new() { Title = "Ok" });
+                    errorLabel.VerticalScrollBar.Visible = false;
+                    _navigationService.RunDialog(errorDialog);
+
+                    e.Handled = true;
                     return;
                 }
 
-                if(translations.ContainsKey(clientPath.Text))
+                if (translations.ContainsKey(clientPath.Text))
                 { 
                     Dialog errorDialog = new Dialog()
                     {
@@ -226,9 +260,35 @@ namespace TOFF.UI.Pages.Options
             if(translationWizard.Result == 1)
             {
                 translations[clientPath.Text] = localPath.Text;
+                UpdateListView();
             }
 
         }
+
+        private void UpdateListView()
+        {
+            foreach(var entry in translations)
+            {
+                if(observable.Any(e => e.Key == entry.Key))
+                {
+                    observable[observable.IndexOf(observable.First(e => e.Key == entry.Key))].Value = entry.Value;
+                }
+                else
+                {
+                    observable.Add(new KeyValueListItem(entry));
+                }
+            }
+
+            //remove entries no longer present
+            foreach(var entry in observable.ToList())
+            {
+                if (!translations.ContainsKey(entry.Key))
+                {
+                    observable.Remove(entry);
+                }
+            }
+        }
+
 
         private void SaveAndBack()
         {
@@ -242,5 +302,165 @@ namespace TOFF.UI.Pages.Options
         {
             _navigationService.NavigateBack();
         }
+
+        private void UpdateTranslation(int i)
+        {
+            Dialog updateWizard = new Dialog()
+            {
+                Title = "Add Path Translation",
+                Width = Dim.Percent(50),
+                Height = Dim.Percent(50),
+            };
+
+            Label description = new Label()
+            {
+                X = Pos.AnchorEnd() + 1,
+                Y = 0,
+                Width = Dim.Percent(40),
+                Height = 9,
+                Text = "The path you want to translate as it appears in the torrent client. In a Docker Compose file, this would be the part after the 'destination' of a volume mount",
+            };
+
+            Label clientPathLabel = new Label()
+            {
+                X = 0,
+                Y = 0,
+                Title = "From Path:",
+            };
+
+            TextField clientPath = new TextField()
+            {
+                X = 0,
+                Y = Pos.Bottom(clientPathLabel),
+                Width = Dim.Percent(50),
+                Text = observable[i].Key,
+            };
+
+            Label localPathLabel = new Label()
+            {
+                X = 0,
+                Y = Pos.Bottom(clientPath),
+                Title = "To Path:"
+            };
+
+            TextField localPath = new TextField()
+            {
+                X = 0,
+                Y = Pos.Bottom(localPathLabel),
+                Width = Dim.Percent(50),
+                Text = observable[i].Value,
+            };
+
+            //add dialog buttons
+            Button cancelButton = new Button()
+            {
+                Title = "Cancel",
+                IsDefault = false,
+            };
+
+            Button deleteButton = new Button()
+            {
+                Title = "Delete",
+                IsDefault = false,
+            };
+
+            Button submitButton = new Button()
+            {
+                Title = "Update",
+                IsDefault = true,
+            };
+
+            clientPath.KeyDown += (_, e) =>
+            {
+                if (e.KeyCode == Key.Enter)
+                {
+                    localPath.SetFocus();
+                    e.Handled = true;
+                }
+            };
+
+            localPath.KeyDown += (_, e) =>
+            {
+                if (e.KeyCode == Key.Enter)
+                {
+                    submitButton.SetFocus();
+                    e.Handled = true;
+                }
+            };
+
+            clientPath.HasFocusChanged += (_, e) =>
+            {
+                if (e.NewFocused == clientPath)
+                {
+                    description.Text = "The path you want to translate as it appears in the torrent client. In a Docker Compose file, this would be the 'destination' of a volume mount";
+                }
+            };
+
+            localPath.HasFocusChanged += (_, e) =>
+            {
+                if (e.NewFocused == localPath)
+                {
+                    description.Text = "The destination path that the path should be translated to. In a Docker Compose file, this would be the part 'source' of a volume mount";
+                }
+            };
+
+            updateWizard.Add(description, clientPathLabel, clientPath, localPathLabel, localPath);
+            updateWizard.AddButton(cancelButton);
+            updateWizard.AddButton(deleteButton);
+            updateWizard.AddButton(submitButton);
+
+            submitButton.Activating += (_, e) =>
+            {
+                if (clientPath.Text.Length == 0)
+                {
+                    Dialog errorDialog = new Dialog()
+                    {
+                        Title = "Empty Client Path",
+                        X = Pos.Center(),
+                        Y = Pos.Center(),
+                    };
+
+                    errorDialog.SetScheme(new Scheme(new Terminal.Gui.Drawing.Attribute(Color.BrightRed, Color.Black)));
+
+                    var errorLabel = new Label()
+                    {
+                        Title = "From Path cannot be empty",
+                        Height = 1,
+                        X = 1,
+                        Y = 1,
+                    };
+
+                    errorDialog.Add(errorLabel);
+                    errorDialog.AddButton(new() { Title = "Ok" });
+                    errorLabel.VerticalScrollBar.Visible = false;
+                    _navigationService.RunDialog(errorDialog);
+
+                    e.Handled = true;
+                    return;
+                }
+            };
+
+
+            _navigationService.RunDialog(updateWizard);
+
+            //delete button
+            if(updateWizard.Result == 1)
+            {
+                translations.Remove(observable[i].Key);
+                UpdateListView();
+            }
+
+            //update button
+            if (updateWizard.Result == 2)
+            {
+                if (observable[i].Key != clientPath.Text)
+                {
+                    translations.Remove(observable[i].Key);
+                }
+                translations[clientPath.Text] = localPath.Text;
+                UpdateListView();
+            }
+        }
+
     }
 }
