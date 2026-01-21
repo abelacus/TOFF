@@ -78,6 +78,7 @@ namespace TOFF.Services
             Debug.WriteLine(windowStack.Count());
             if(windowStack.Count() <= 1)
             {
+                _top.RequestStop();
                 return;
             }
             windowStack.RemoveAt(windowStack.Count - 1);
