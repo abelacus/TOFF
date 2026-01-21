@@ -25,7 +25,14 @@ namespace TorrentClient.Clients.qBittorrent
         {
             _cookieContainer = new CookieContainer();
             _httpClientHandler = new HttpClientHandler() { CookieContainer = _cookieContainer };
-            _httpClient = new HttpClient(_httpClientHandler) { BaseAddress = new Uri(clientConfig.ApiURL) };
+
+            string apiUrl = clientConfig.ApiURL;
+            if (!apiUrl.StartsWith("http"))
+            {
+                apiUrl = "http://" + apiUrl;
+            }
+
+            _httpClient = new HttpClient(_httpClientHandler) { BaseAddress = new Uri(apiUrl) };
         }
 
         public override async void ConnectToClient()
@@ -51,7 +58,7 @@ namespace TorrentClient.Clients.qBittorrent
                 ConnectToClient();
             }
 
-            var response = await _httpClient.GetFromJsonAsync<List<TorrentFileDetails>>("/api/v2/torrents/files?hash=" + torrentHash);
+            var response = await _httpClient.GetFromJsonAsync("/api/v2/torrents/files?hash=" + torrentHash, TorrentFileDetailsContext.Default.ListTorrentFileDetails);
 
             List<FileDetails> files = new List<FileDetails>();
 
@@ -70,7 +77,7 @@ namespace TorrentClient.Clients.qBittorrent
                 ConnectToClient();
             }
 
-            var response = await _httpClient.GetFromJsonAsync<List<TorrentInfo>>("/api/v2/torrents/info");
+            var response = await _httpClient.GetFromJsonAsync("/api/v2/torrents/info", TorrentInfoContext.Default.ListTorrentInfo);
 
             List<TorrentDetails> torrents = new List<TorrentDetails>();
 

@@ -8,13 +8,13 @@ namespace TorrentClient.Clients.qBittorrent.Models
 {
     internal record TorrentFileDetails
     {
-        public int index;
-        public string name;
-        public int size;
-        public float progress;
-        public int priority;
-        public bool is_seed;
-        public int[] piece_range;
-        public float availability;
+        public int index { get; init; }
+        public string name { get; init; }
+        public ulong size { get; init; }
+        public float progress { get; init; }
+        public int priority { get; init; }
+        public bool is_seed { get; init; }
+        public int[] piece_range { get; init; }
+        public float availability { get; init; }
     }
 }
