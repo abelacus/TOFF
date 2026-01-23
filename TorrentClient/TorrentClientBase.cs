@@ -11,9 +11,9 @@ namespace TorrentClient
     {
         protected readonly TorrentClientConfig _clientConfig;
         protected TorrentClientBase(TorrentClientConfig clientConfig) { _clientConfig = clientConfig; }
-        public abstract void ConnectToClient();
+        public abstract Task ConnectToClient();
 
-        public abstract Task<FileDetails[]> GetFilesForTorrent(string torrentHash);
+        public abstract Task<FileDetails[]> GetFilesForTorrent(TorrentDetails torrentDetails);
         public abstract Task<TorrentDetails[]> GetTorrentDetails();
     }
 }

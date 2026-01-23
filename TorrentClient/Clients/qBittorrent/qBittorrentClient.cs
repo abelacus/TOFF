@@ -35,7 +35,7 @@ namespace TorrentClient.Clients.qBittorrent
             _httpClient = new HttpClient(_httpClientHandler) { BaseAddress = new Uri(apiUrl) };
         }
 
-        public override async void ConnectToClient()
+        public override async Task ConnectToClient()
         {
             var loginDetails = new FormUrlEncodedContent(new[]
             {
@@ -51,20 +51,20 @@ namespace TorrentClient.Clients.qBittorrent
         }
 
 
-        public override async Task<FileDetails[]> GetFilesForTorrent(string torrentHash)
+        public override async Task<FileDetails[]> GetFilesForTorrent(TorrentDetails torrentDetails)
         {
             if (!isLoggedIn)
             {
                 ConnectToClient();
             }
 
-            var response = await _httpClient.GetFromJsonAsync("/api/v2/torrents/files?hash=" + torrentHash, TorrentFileDetailsContext.Default.ListTorrentFileDetails);
+            var response = await _httpClient.GetFromJsonAsync("/api/v2/torrents/files?hash=" + torrentDetails.Hash, TorrentFileDetailsContext.Default.ListTorrentFileDetails);
 
             List<FileDetails> files = new List<FileDetails>();
 
             response.ForEach(fileRaw =>
             {
-                files.Add(new FileDetails { fileName = fileRaw.name, priority = fileRaw.priority });
+                files.Add(new FileDetails { fileName = fileRaw.name, priority = fileRaw.priority, savePath = torrentDetails.SavePath });
             });
 
             return files.ToArray();

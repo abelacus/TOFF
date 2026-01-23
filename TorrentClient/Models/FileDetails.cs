@@ -12,12 +12,15 @@ namespace TorrentClient.Models
         /// <summary>
         /// the directory of the file. this should not have a trailing '/'
         /// </summary>
-        public string savePath { get; set; }
+        public string savePath { get; set {
+                field = Path.GetFullPath(value); //base path should already be provided fully qualified, we just want to convert to the OS form first.
+            }
+        }
         /// <summary>
         /// Returns the full path, generated from <see cref="savePath"/> and <see cref="fileName"/>
         /// </summary>
         public string qualifiedPath { get {
-                return savePath + "/" + fileName;
+                return Path.Join(savePath, fileName);
             }
         }
         public int priority { get; set; }

@@ -6,8 +6,8 @@ namespace TorrentClient
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
     public interface ITorrentClient
     {
-        public void ConnectToClient();
+        public Task ConnectToClient();
         public Task<TorrentDetails[]> GetTorrentDetails();
-        public Task<FileDetails[]> GetFilesForTorrent(string torrentHash);
+        public Task<FileDetails[]> GetFilesForTorrent(TorrentDetails torrentDetails);
     }
 }
