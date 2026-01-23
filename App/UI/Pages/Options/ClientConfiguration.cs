@@ -105,12 +105,12 @@ namespace TOFF.UI.Pages.Options
 
             if (bool.Parse(configItems[1].Value))
             {
-                //create dialog saying to set unset variables
-                if (configItems[0].Value.Length == 0 || configItems[2].Value.Length == 0 || configItems[3].Value.Length == 0)
+                //create dialog if both aren't set, allow if at least one is.
+                if (configItems[2].Value.Length == 0 && configItems[3].Value.Length == 0)
                 {
                     var errorLabel = new Label()
                     {
-                        Title = "All fields must be set when authentication is required.",
+                        Title = "A username or password must be provided if authentication is required",
                         X = Pos.Center(),
                         Y = Pos.Center(),
                         Height = 1,
