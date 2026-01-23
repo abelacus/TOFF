@@ -142,7 +142,7 @@ namespace TOFF.UI.Pages.Options
 
             directorySelectButton.Activating += (_, e) =>
             {
-                string? selectedDirectory = ShowFolderSelectPopup();
+                string? selectedDirectory = ShowFolderSelectPopup(localPath.Text.Length > 0 ? localPath.Text : null);
                 if(selectedDirectory != null)
                 {
                     localPath.Text = selectedDirectory;
@@ -375,7 +375,7 @@ namespace TOFF.UI.Pages.Options
 
             directorySelectButton.Activating += (_, e) =>
             {
-                string? selectedDirectory = ShowFolderSelectPopup();
+                string? selectedDirectory = ShowFolderSelectPopup(localPath.Text.Length > 0 ? localPath.Text : null);
                 if (selectedDirectory != null)
                 {
                     localPath.Text = selectedDirectory;
@@ -494,7 +494,7 @@ namespace TOFF.UI.Pages.Options
             }
         }
 
-        private string? ShowFolderSelectPopup()
+        private string? ShowFolderSelectPopup(string? currentPath)
         {
             var directorySelector = new OpenDialog()
             {
@@ -504,6 +504,11 @@ namespace TOFF.UI.Pages.Options
                 AllowsMultipleSelection = false,
 
             };
+
+            if(currentPath != null)
+            {
+                directorySelector.Path = currentPath;
+            }
 
             string? result = null;
 
