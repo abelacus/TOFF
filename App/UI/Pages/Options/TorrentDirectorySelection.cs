@@ -19,9 +19,13 @@ namespace TOFF.UI.Pages.Options
                 OpenMode = OpenMode.Directory,
                 X = Pos.Center(),
                 Y = Pos.Center(),
-                AllowsMultipleSelection = false,
-                
+                AllowsMultipleSelection = false,  
             };
+
+            if(appState.torrentDirectory != null)
+            {
+                directorySelector.Path = appState.torrentDirectory;
+            }
 
             directorySelector.FilesSelected += (_, ev) =>
             {
