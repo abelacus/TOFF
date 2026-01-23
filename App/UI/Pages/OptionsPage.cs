@@ -1,4 +1,5 @@
-﻿using Terminal.Gui.Input;
+﻿using Terminal.Gui.Drawing;
+using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 using TOFF.Models;
@@ -50,12 +51,28 @@ namespace TOFF.UI.Pages
                 },
             };
 
+
             var optionsTree = new TreeView()
             {
                 X = 0,
                 Y = 0,
                 Width = Dim.Fill(),
-                Height = Dim.Fill(),
+                Height = Dim.Fill() - 2,
+            };
+
+            Line divider = new Line()
+            {
+                X = 0,
+                Y = Pos.Bottom(optionsTree),
+                Length = Dim.Fill(),
+                Orientation = Orientation.Horizontal,
+            };
+
+            Bar shortcutBar = new Bar()
+            {
+                X = 0,
+                Y = Pos.Bottom(divider),
+                AlignmentModes = AlignmentModes.StartToEnd,
             };
 
             optionsTree.Style.ExpandableSymbol = null;
@@ -83,6 +100,7 @@ namespace TOFF.UI.Pages
                         else
                         {
                             e.Tree.GoTo(parent);
+                            shortcutBar.SetFocus();
                         }
                     }
                     else
@@ -93,7 +111,6 @@ namespace TOFF.UI.Pages
                 }
             };
 
-
             //initialise selected page
             optionsTree.ObjectActivated += (_, entry) =>
             {
@@ -102,6 +119,85 @@ namespace TOFF.UI.Pages
             };
 
             Add(optionsTree);
+
+            Shortcut backShortcut = new Shortcut()
+            {
+                Action = Exit,
+                Key = Key.Esc,
+                Text = "Quit",
+            };
+
+            Shortcut nextStep = new Shortcut()
+            {
+                Action = SearchAndDisplayResults,
+                Key = Key.N.WithCtrl.WithAlt,
+                Text = "Find Orphans",
+            };
+
+            shortcutBar.Add(backShortcut, nextStep);
+
+            Add(divider, shortcutBar);
         }
+
+        private void Exit()
+        {
+            _navigationService.NavigateBack();
+        }
+        
+        private void SearchAndDisplayResults()
+        {
+
+
+            Dialog errorDialog = new Dialog()
+            {
+                Title = "Required parameters not set",
+                X = Pos.Center(),
+                Y = Pos.Center(),
+            };
+
+            errorDialog.SetScheme(new Scheme(new Terminal.Gui.Drawing.Attribute(Color.BrightRed, Color.Black)));
+
+            //validate current settings
+            if (_appState.torrentClientConfig.ApiURL == null || _appState.torrentClientConfig.ApiURL.Length == 0)
+            {
+                Label errorLabel = new Label()
+                {
+                    Text = "API url must be set",
+                    X = Pos.Center() + 1,
+                    Y = 1,
+                    Height = 1,
+                    CanFocus = false,
+                };
+
+                errorDialog.Add(errorLabel);
+                errorDialog.AddButton(new () { Title = "Ok" });
+                _navigationService.RunDialog(errorDialog);
+
+                return;
+                //show popup
+            }
+
+            if(_appState.torrentDirectory == null || _appState.torrentDirectory.Length == 0)
+            {
+                Label errorLabel = new Label()
+                {
+                    Title = "Local directory to scan and compare for files must be set",
+                    X = Pos.Center(),
+                    Y = Pos.Center(),
+                    Height = 1,
+                    CanFocus = false,
+                };
+
+                errorDialog.Add(errorLabel);
+                errorDialog.AddButton(new Button() { Title = "Ok" });
+                _navigationService.RunDialog(errorDialog);
+
+                return;
+            }
+
+
+            _navigationService.NavigateTo(typeof(SearchPage));
+        }
+
     }
 }
