@@ -6,6 +6,7 @@ using Terminal.Gui.Drawing;
 using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
+using TOFF.Models;
 using TOFF.Services;
 using TorrentClient;
 using TorrentClient.Models;
@@ -159,9 +160,20 @@ namespace TOFF.UI.Pages
                           where !allTorrentFiles.Any(e => e.qualifiedPath == f)
                           select f;
 
+            List<FileInformation> missingInformation = new List<FileInformation>();
+            foreach (var item in missing)
+            {
+                missingInformation.Add(FileInfoService.GetFileInfo(item));
+            }
+
+            //var missingInformation = from f in missing select FileInfoService.GetFileInfo(f);
+
             Debug.WriteLine(missing.Count());
 
-
+            //TODO:
+            //get metadata for all files in missing
+            //creation date, size, number of hardlinks, 
+            
 
             //once done, display data in a table.
 
