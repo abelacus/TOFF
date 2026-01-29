@@ -56,7 +56,7 @@ namespace TOFF.Services
             NavigateTo(typeof(T));
         }
 
-        public void NavigateTo(Type nav)
+        public void NavigateTo(Type nav, bool Backable = true)
         {
             if (typeof(IPopup).IsAssignableFrom(nav))
             {
@@ -66,7 +66,10 @@ namespace TOFF.Services
             }
             else
             {
-                windowStack.Add(nav);
+                if (Backable)
+                {
+                    windowStack.Add(nav);
+                }
                 _top.RemoveAll();
                 var page = (View)_serviceProvider.GetRequiredService(nav);
                 _top.Add(page);

@@ -196,7 +196,7 @@ namespace TOFF.UI.Pages
             }
 
 
-            _navigationService.NavigateTo(typeof(SearchPage));
+            _navigationService.NavigateTo(typeof(SearchPage), false);
         }
 
     }
