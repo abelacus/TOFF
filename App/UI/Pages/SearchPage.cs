@@ -152,7 +152,7 @@ namespace TOFF.UI.Pages
                     }
                 }
 
-                progressBar.Fraction += 1f / details.Length / 2.5f;
+                progressBar.Fraction += 1f / details.Length / 2.5f; //2.5 because we want it to be 40% of the bar
             }
 
             //walk through torrentDirectory
@@ -160,20 +160,16 @@ namespace TOFF.UI.Pages
                           where !allTorrentFiles.Any(e => e.qualifiedPath == f)
                           select f;
 
+      
             List<FileInformation> missingInformation = new List<FileInformation>();
             foreach (var item in missing)
             {
                 missingInformation.Add(FileInfoService.GetFileInfo(item));
+                progressBar.Fraction += 1f / missing.Count() / 2.5f;
             }
-
-            //var missingInformation = from f in missing select FileInfoService.GetFileInfo(f);
 
             Debug.WriteLine(missing.Count());
 
-            //TODO:
-            //get metadata for all files in missing
-            //creation date, size, number of hardlinks, 
-            
 
             //once done, display data in a table.
 

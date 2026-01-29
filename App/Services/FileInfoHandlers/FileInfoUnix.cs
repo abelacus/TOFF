@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using TOFF.Models;
-using TorrentClient.Models;
+﻿using TOFF.Models;
+using Mono.Unix.Native;
 
 namespace TOFF.Services.FileInfoHandlers
 {
@@ -10,7 +7,15 @@ namespace TOFF.Services.FileInfoHandlers
     {
         public FileInformation GetFileInfo(string filePath)
         {
-            throw new NotImplementedException();
+            Syscall.stat(filePath, out var info);
+
+            return new FileInformation
+            {
+                savePath = filePath,
+                creationDate = DateTimeOffset.FromUnixTimeSeconds(info.st_ctime).DateTime, //is actually last metadata modification time, but should be good enough. easier than using statx and worrying about whether the filesystem returns it
+                lastModifiedDate = DateTimeOffset.FromUnixTimeSeconds(info.st_mtime).DateTime,
+                links = (uint)info.st_nlink
+            };
         }
     }
 }

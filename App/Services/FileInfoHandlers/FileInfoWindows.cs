@@ -55,22 +55,43 @@ namespace TOFF.Services.FileInfoHandlers
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool GetFileInformationByHandle(SafeFileHandle hFile, out BY_HANDLE_FILE_INFORMATION FileInformation);
 
+        private static bool CanGetByName = true;
 
         public FileInformation GetFileInfo(string filePath)
         {
-            try //almost certainly a better way to handle this but this is fine for now i guess.
+            if (CanGetByName)
             {
-                GetFileInformationByName(filePath, _FILE_INFO_BY_NAME_CLASS.FileStatByNameInfo, out var info, (uint)Marshal.SizeOf<FILE_STAT_INFORMATION>());
-
-                return new FileInformation
+                try //almost certainly a better way to handle this but this is fine for now i guess.
                 {
-                    savePath = filePath,
-                    creationDate = new DateTime((int)info.CreationTime),
-                    lastModifiedDate = new DateTime((int)info.ChangeTime),
-                    links = info.NumberOfLinks,
-                };
+                    GetFileInformationByName(filePath, _FILE_INFO_BY_NAME_CLASS.FileStatByNameInfo, out var info, (uint)Marshal.SizeOf<FILE_STAT_INFORMATION>());
+
+                    return new FileInformation
+                    {
+                        savePath = filePath,
+                        creationDate = new DateTime((int)info.CreationTime),
+                        lastModifiedDate = new DateTime((int)info.ChangeTime),
+                        links = info.NumberOfLinks,
+                    };
+                }
+                catch (Exception e) //will fail on windows 10 and earlier so need an alternative
+                {
+                    CanGetByName = false;
+                    SafeFileHandle handle = File.OpenHandle(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, FileOptions.None);
+
+                    GetFileInformationByHandle(handle, out var info);
+
+                    handle.Close();
+
+                    return new FileInformation
+                    {
+                        savePath = filePath,
+                        creationDate = DateTime.FromFileTime((((long)info.ftCreationTime.dwHighDateTime) << 32) | ((uint)info.ftCreationTime.dwLowDateTime)),
+                        lastModifiedDate = DateTime.FromFileTime((((long)info.ftLastWriteTime.dwHighDateTime) << 32) | ((uint)info.ftLastWriteTime.dwLowDateTime)),
+                        links = info.nNumberOfLinks
+                    };
+                }
             }
-            catch (Exception e) //will fail on windows 10 and earlier so need an alternative
+            else
             {
                 SafeFileHandle handle = File.OpenHandle(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, FileOptions.None);
 
