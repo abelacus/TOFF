@@ -168,12 +168,11 @@ namespace TOFF.UI.Pages
                 progressBar.Fraction += 1f / missing.Count() / 2.5f;
             }
 
-            Debug.WriteLine(missing.Count());
-
+            _appState.filesMissingFromClient = missingInformation.ToArray();
 
             //once done, display data in a table.
 
-
+            _navigationService.NavigateTo(typeof(ResultsTablePage));
         }
 
         private string TranslatePath(string path)

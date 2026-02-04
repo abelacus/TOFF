@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TOFF.Models;
 using TorrentClient;
 using TorrentClient.Models;
 
@@ -11,7 +12,8 @@ namespace TOFF.Services
     internal class AppStateService
     {
         public ITorrentClient? torrentClient;
-        public FileDetails[]? torrentFiles;
+        public FileInformation[] filesMissingFromClient;
+        public FileInformation[] toBeDeleted;
         public TorrentClientConfig torrentClientConfig;
         public string clientSelection;
         public string? torrentDirectory;
@@ -20,7 +22,6 @@ namespace TOFF.Services
         /// <see cref="TKey"/> is path as it appears in torrent client, <see cref="TValue"> is local path to translate to
         /// </summary>
         public Dictionary<string, string> PathTranslations = new Dictionary<string, string>();
-        public bool exit = false;
 
         public AppStateService(TorrentClientService clientFactory)
         {

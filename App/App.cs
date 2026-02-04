@@ -25,9 +25,7 @@ namespace TOFF
         {
             ConfigurationManager.Enable(ConfigLocations.All);
 
-            _navigationService.NavigateTo<OptionsPage>();
-
-            _navigationService.Init();
+            _navigationService.Init<OptionsPage>();
 
         }
     }

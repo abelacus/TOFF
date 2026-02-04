@@ -18,7 +18,6 @@ namespace TOFF.Services
         public NavigationService(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
-            _top = new Runnable();
 
             //_top.IsRunningChanging += (_, obj) =>
             //{
@@ -30,12 +29,16 @@ namespace TOFF.Services
             //};
         }
 
-        public void Init()
+        public void Init<T>() where T : View
         { 
             Application.IsMouseDisabled = true;
 
             using IApplication app = Application.Create().Init();
             application = app;
+            _top = new Runnable();
+
+            NavigateTo<T>();
+
             app.Run(_top);
             app.Dispose();
         }
@@ -51,9 +54,9 @@ namespace TOFF.Services
             return view.Result ?? -1;
         }
 
-        public void NavigateTo<T>() where T : View
+        public void NavigateTo<T>(bool Backable = true) where T : View
         {
-            NavigateTo(typeof(T));
+            NavigateTo(typeof(T), Backable);
         }
 
         public void NavigateTo(Type nav, bool Backable = true)
