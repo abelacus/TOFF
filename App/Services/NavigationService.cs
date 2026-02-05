@@ -13,7 +13,7 @@ namespace TOFF.Services
         private Runnable _top;
         private IApplication application;
 
-        private List<Type> windowStack = new List<Type>();
+        private List<(Type pageType, bool isBackable)> windowStack = new List<(Type pageType, bool isBackable)>();
 
         public NavigationService(IServiceProvider serviceProvider)
         {
@@ -35,7 +35,7 @@ namespace TOFF.Services
 
             using IApplication app = Application.Create().Init();
             application = app;
-            _top = new Runnable();
+                        _top = new Runnable();
 
             NavigateTo<T>();
 
@@ -69,10 +69,7 @@ namespace TOFF.Services
             }
             else
             {
-                if (Backable)
-                {
-                    windowStack.Add(nav);
-                }
+                windowStack.Add((nav, Backable));
                 _top.RemoveAll();
                 var page = (View)_serviceProvider.GetRequiredService(nav);
                 _top.Add(page);
@@ -89,8 +86,13 @@ namespace TOFF.Services
             }
             windowStack.RemoveAt(windowStack.Count - 1);
 
+            while (windowStack.Count > 0 && !windowStack[^1].isBackable)
+            {
+                windowStack.RemoveAt(windowStack.Count - 1);
+            }
+
             _top.RemoveAll();
-            var page = (View)_serviceProvider.GetRequiredService(windowStack[^1]);
+            var page = (View)_serviceProvider.GetRequiredService(windowStack[^1].pageType);
             _top.Add(page);
         }
     }
