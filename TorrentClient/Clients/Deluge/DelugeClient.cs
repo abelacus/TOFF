@@ -50,12 +50,12 @@ namespace TorrentClient.Clients.Deluge
 
             ResponseBase<bool> rawData = await response.Content.ReadFromJsonAsync(ResponseBaseContext.Default.ResponseBaseBoolean);
 
-            if (rawData.Error != null)
+            if (rawData.Error != null || !rawData.Result)
             {
-                throw new Exception(rawData.Error.message);
+                throw new Exception("Unable to login");
             }
 
-            isLoggedIn = true;
+            isLoggedIn = rawData.Result;
         }
 
         public override async Task<FileDetails[]> GetFilesForTorrent(TorrentDetails torrentDetails)

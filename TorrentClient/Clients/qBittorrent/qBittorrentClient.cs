@@ -47,6 +47,12 @@ namespace TorrentClient.Clients.qBittorrent
 
             response.EnsureSuccessStatusCode();
 
+            if (response.Content.ReadAsStringAsync().Result == "Fails.")
+            {
+                isLoggedIn = false;
+                throw new Exception("Unable to login");
+            }
+
             isLoggedIn = true;
         }
 
