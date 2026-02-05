@@ -41,7 +41,7 @@ namespace TOFF.UI.Pages
 
             Add(spinner, current);
 
-            new Thread(() =>
+            Task.Run(() =>
             {
                 Thread.CurrentThread.IsBackground = true;
                 foreach (var item in _appState.toBeDeleted)
@@ -55,8 +55,10 @@ namespace TOFF.UI.Pages
                 _appState.toBeDeleted = Array.Empty<Models.FileInformation>();
                 _appState.filesMissingFromClient = Array.Empty<Models.FileInformation>();
 
+                spinner.Dispose(); //call dispose before navigating back; crashes otherwise. might want to find a way to handle this within NavigateBack.
+
                 _navigationService.NavigateBack();
-            }).Start();
+            });
 
 
         }

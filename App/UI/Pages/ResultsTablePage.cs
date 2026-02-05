@@ -63,8 +63,34 @@ namespace TOFF.UI.Pages
                         { "lastModifiedDate", (p) => p.lastModifiedDate.ToShortDateString() },
                     }
                 );
-            //TODO: fix ctrl+a selection not working
 
+
+            table.KeyDown += (_, e) =>
+            {
+                //because the default select all works weirdly, add each item individually instead.
+                if (e.KeyCode == Key.A.WithCtrl)
+                {
+                    if(table.MultiSelectedRegions.Count() == table.Table.Rows)
+                    {
+                        table.MultiSelectedRegions.Clear();
+                        table.SetNeedsDraw();
+                        e.Handled = true;
+                        return;
+                    }
+
+                    //add all not-selected entries to the list. might have performance issues on large numbers of files.
+                    var selected = table.MultiSelectedRegions.Select(e => e.Origin.Y);
+                    for (int i = 0; i < table.Table.Rows; i++)
+                    {
+                        if(!selected.Any(e => e == i))
+                        {
+                            table.MultiSelectedRegions.Push(new TableSelection(new System.Drawing.Point(0, i), new System.Drawing.Rectangle(0, i, 1, 1)) { IsToggled = true });
+                        }
+                    }
+                    table.SetNeedsDraw();
+                    e.Handled = true;
+                }
+            };
 
             Add(table);
 
@@ -104,6 +130,11 @@ namespace TOFF.UI.Pages
 
         private void StartRemoveJob()
         {
+            if(table.MultiSelectedRegions.Count() == 0)
+            {
+                return;
+            }
+
             Dialog errorDialog = new Dialog()
             {
                 Title = "Are you sure?",

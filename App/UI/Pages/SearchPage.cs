@@ -25,14 +25,13 @@ namespace TOFF.UI.Pages
         private ProgressBar progressBar;
         private Label statusLabel;
 
+        private CancellationTokenSource _cts = new CancellationTokenSource();
+
         public SearchPage(AppStateService appstate, NavigationService navigationService, TorrentClientService torrentClientService)
         {
             _appState = appstate;
             _navigationService = navigationService;
             _clientService = torrentClientService;
-
-
-            //TODO: implement search job functionality
 
             progressBar = new ProgressBar()
             {
@@ -57,32 +56,41 @@ namespace TOFF.UI.Pages
             {
                 Y = Pos.AnchorEnd(),
                 Key = Key.Esc,
-                Action = _navigationService.NavigateBack
+                Action = () => { _cts.Cancel(); _navigationService.NavigateBack(); }
             };
 
             Add(backShortcut);
 
             //Do this in a seperate thread because it might take a while
-            new Thread(() =>
+            Task.Run(() =>
             {
-                Thread.CurrentThread.IsBackground = true;
-
-                if (CreateAndConnectTorrentClient())
+                try
                 {
-                    GetAndProcessClientData();
+                    if (CreateAndConnectTorrentClient(_cts.Token))
+                    {
+                        GetAndProcessClientData(_cts.Token);
+                    }
                 }
+                catch(OperationCanceledException e)
+                {
+                    Debug.WriteLine("Cancelled");
+                }
+            }, _cts.Token);
 
-            }).Start();
 
         }
 
-        private bool CreateAndConnectTorrentClient()
+        private bool CreateAndConnectTorrentClient(CancellationToken token)
         {
             try
             {
                 _appState.torrentClient = _clientService.CreateClientInstance(_appState.clientSelection, _appState.torrentClientConfig);
             
                 _appState.torrentClient.ConnectToClient().Wait();
+                if (token.IsCancellationRequested)
+                {
+                    return false;
+                }
                 return true;
             }
             catch (Exception e)
@@ -111,16 +119,19 @@ namespace TOFF.UI.Pages
 
                 errorDialog.Add(errorLabel);
                 errorDialog.AddButton(new() { Title = "Ok" });
-                _navigationService.RunDialog(errorDialog);
+                if (!token.IsCancellationRequested)
+                {
+                    _navigationService.RunDialog(errorDialog);
+                    _navigationService.NavigateBack();
+                }
 
-                _navigationService.NavigateBack();
                 return false;
             }
 
         }
 
 
-        private void GetAndProcessClientData()
+        private void GetAndProcessClientData(CancellationToken token)
         {
             //get number of files/directories in torrentDirectory
             int estimatedDirectoryItemCount = Directory.GetFiles(_appState.torrentDirectory!).Length + Directory.GetDirectories(_appState.torrentDirectory!).Length;
@@ -135,6 +146,11 @@ namespace TOFF.UI.Pages
             //request data from torrents
             foreach (var needed in details)
             {
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+
                 if (_appState.IgnoreDirectories.Any(e => e == needed.SavePath))
                 {
                     continue;
@@ -164,6 +180,10 @@ namespace TOFF.UI.Pages
             List<FileInformation> missingInformation = new List<FileInformation>();
             foreach (var item in missing)
             {
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
                 missingInformation.Add(FileInfoService.GetFileInfo(item));
                 progressBar.Fraction += 1f / missing.Count() / 2.5f;
             }
@@ -171,8 +191,10 @@ namespace TOFF.UI.Pages
             _appState.filesMissingFromClient = missingInformation.ToArray();
 
             //once done, display data in a table.
-
-            _navigationService.NavigateTo(typeof(ResultsTablePage));
+            if (!token.IsCancellationRequested)
+            {
+                _navigationService.NavigateTo(typeof(ResultsTablePage), false);
+            }
         }
 
         private string TranslatePath(string path)
