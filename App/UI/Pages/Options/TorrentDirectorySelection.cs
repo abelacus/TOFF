@@ -16,10 +16,12 @@ namespace TOFF.UI.Pages.Options
         {
             var directorySelector = new OpenDialog()
             {
+                Title = "Torrent Download Directory",
                 OpenMode = OpenMode.Directory,
                 X = Pos.Center(),
                 Y = Pos.Center(),
-                AllowsMultipleSelection = false,  
+                AllowsMultipleSelection = false,
+                MustExist = true,
             };
 
             if(appState.torrentDirectory != null)
