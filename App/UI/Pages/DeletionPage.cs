@@ -46,7 +46,10 @@ namespace TOFF.UI.Pages
                 Thread.CurrentThread.IsBackground = true;
                 foreach (var item in _appState.toBeDeleted)
                 {
-                    current.Text = "Deleting: " + item.savePath;
+                    App.Invoke(() =>
+                    {
+                        current.Text = "Deleting: " + item.savePath;
+                    });
                     //Thread.Sleep(2000);
                     File.Delete(item.savePath);
                 }

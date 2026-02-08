@@ -47,7 +47,7 @@ namespace TOFF.UI.Pages
             {
                 X = Pos.Left(progressBar),
                 Y = Pos.Top(progressBar) - 2,
-                Text = "Gathering Data",
+                Text = "Logging in to client...",
             };
 
             Add(statusLabel, progressBar);
@@ -119,10 +119,15 @@ namespace TOFF.UI.Pages
 
                 errorDialog.Add(errorLabel);
                 errorDialog.AddButton(new() { Title = "Ok" });
+
+                errorDialog.Buttons[0].Activating += (_, e) =>
+                {
+                    _navigationService.NavigateBack();
+                };
+
                 if (!token.IsCancellationRequested)
                 {
                     _navigationService.RunDialog(errorDialog);
-                    _navigationService.NavigateBack();
                 }
 
                 return false;
@@ -141,7 +146,11 @@ namespace TOFF.UI.Pages
 
             List<FileDetails> allTorrentFiles = new List<FileDetails>();
 
-            progressBar.Fraction = 0.1f;
+            App.Invoke(() =>
+            {
+                progressBar.Fraction = 0.1f;
+                statusLabel.Text = "Getting files in torrents...";
+            });
 
             //request data from torrents
             foreach (var needed in details)
@@ -168,14 +177,21 @@ namespace TOFF.UI.Pages
                     }
                 }
 
-                progressBar.Fraction += 1f / details.Length / 2.5f; //2.5 because we want it to be 40% of the bar
+                App.Invoke(() =>
+                {
+                    progressBar.Fraction += 1f / details.Length / 2.5f; //2.5 because we want it to be 40% of the bar
+                });
             }
+
+            App.Invoke(() =>
+            {
+                statusLabel.Text = "Getting details of missing files...";
+            });
 
             //walk through torrentDirectory
             var missing = from f in Directory.EnumerateFiles(_appState.torrentDirectory!, "*", SearchOption.AllDirectories)
                           where !allTorrentFiles.Any(e => e.qualifiedPath == f)
                           select f;
-
       
             List<FileInformation> missingInformation = new List<FileInformation>();
             foreach (var item in missing)
@@ -185,7 +201,11 @@ namespace TOFF.UI.Pages
                     return;
                 }
                 missingInformation.Add(FileInfoService.GetFileInfo(item));
-                progressBar.Fraction += 1f / missing.Count() / 2.5f;
+
+                App.Invoke(() =>
+                {
+                    progressBar.Fraction += 1f / missing.Count() / 2.5f;
+                });
             }
 
             _appState.filesMissingFromClient = missingInformation.ToArray();

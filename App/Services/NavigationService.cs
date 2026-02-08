@@ -35,7 +35,7 @@ namespace TOFF.Services
 
             using IApplication app = Application.Create().Init();
             application = app;
-                        _top = new Runnable();
+            _top = new Runnable();
 
             NavigateTo<T>();
 
@@ -50,7 +50,13 @@ namespace TOFF.Services
         /// <returns></returns>
         public int RunDialog(Dialog view)
         {
-            application.Run(view);
+
+            //we have instances where this is called from an external thread so use invoke instead
+            application.Invoke(() =>
+            {
+                application.Run(view);
+            });
+
             return view.Result ?? -1;
         }
 
@@ -61,39 +67,45 @@ namespace TOFF.Services
 
         public void NavigateTo(Type nav, bool Backable = true)
         {
-            if (typeof(IPopup).IsAssignableFrom(nav))
+            application.Invoke(() =>
             {
-                var popup = (IPopup)_serviceProvider.GetRequiredService(nav);
-                
-                RunDialog(popup.popupWindow);
-            }
-            else
-            {
-                windowStack.Add((nav, Backable));
-                _top.RemoveAll();
-                var page = (View)_serviceProvider.GetRequiredService(nav);
-                _top.Add(page);
-            }
+                if (typeof(IPopup).IsAssignableFrom(nav))
+                {
+                    var popup = (IPopup)_serviceProvider.GetRequiredService(nav);
+
+                    RunDialog(popup.popupWindow);
+                }
+                else
+                {
+                    windowStack.Add((nav, Backable));
+                    _top.RemoveAll();
+                    var page = (View)_serviceProvider.GetRequiredService(nav);
+                    _top.Add(page);
+                }
+            });
         }
 
         public void NavigateBack()
         {
-            Debug.WriteLine(windowStack.Count());
-            if(windowStack.Count() <= 1)
+            application.Invoke(() =>
             {
-                _top.RequestStop();
-                return;
-            }
-            windowStack.RemoveAt(windowStack.Count - 1);
-
-            while (windowStack.Count > 0 && !windowStack[^1].isBackable)
-            {
+                Debug.WriteLine(windowStack.Count());
+                if (windowStack.Count() <= 1)
+                {
+                    _top.RequestStop();
+                    return;
+                }
                 windowStack.RemoveAt(windowStack.Count - 1);
-            }
 
-            _top.RemoveAll();
-            var page = (View)_serviceProvider.GetRequiredService(windowStack[^1].pageType);
-            _top.Add(page);
+                while (windowStack.Count > 0 && !windowStack[^1].isBackable)
+                {
+                    windowStack.RemoveAt(windowStack.Count - 1);
+                }
+
+                _top.RemoveAll();
+                var page = (View)_serviceProvider.GetRequiredService(windowStack[^1].pageType);
+                _top.Add(page);
+            });
         }
     }
 }
