@@ -31,11 +31,10 @@ namespace TOFF.Services
 
         public void Init<T>() where T : View
         { 
-            Application.IsMouseDisabled = true;
-
             using IApplication app = Application.Create().Init();
             application = app;
             _top = new Runnable();
+            app.Mouse.IsMouseDisabled = true;
 
             NavigateTo<T>();
 
