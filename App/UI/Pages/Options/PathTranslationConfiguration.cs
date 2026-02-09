@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Terminal.Gui.Configuration;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
@@ -23,6 +24,8 @@ namespace TOFF.UI.Pages.Options
             _appState = appState;
             _navigationService = navigationService;
 
+            Title = "Path Translations";
+
             translations = _appState.PathTranslations;
 
             ListView translationList = new ListView()
@@ -31,6 +34,7 @@ namespace TOFF.UI.Pages.Options
                 Y = 0,
                 Width = Dim.Fill(),
                 Height = Dim.Fill() - 2,
+                AllowsMarking = false,
             };
 
             observable = new ObservableCollection<KeyValueListItem>(translations.Select(e => new KeyValueListItem(e)));
@@ -39,7 +43,10 @@ namespace TOFF.UI.Pages.Options
 
             translationList.OpenSelectedItem += (_, e) =>
             {
-                UpdateTranslation((int)e.Item);
+                if(e.Item != null)
+                {
+                    UpdateTranslation((int)e.Item);
+                }
             };
 
             Add(translationList);
@@ -80,7 +87,14 @@ namespace TOFF.UI.Pages.Options
                 Text = "Discard Changes",
             };
 
-            shortcutBar.Add(addNewShortcut, backShortcut, discardShortcut);
+            Shortcut aboutShortcut = new Shortcut()
+            {
+                Action = ShowAboutPopup,
+                Key = Key.I.WithAlt,
+                Text = "Info"
+            };
+
+            shortcutBar.Add(backShortcut, discardShortcut, addNewShortcut, aboutShortcut);
             translationList.SetFocus();
 
             Add(divider, shortcutBar);
@@ -93,12 +107,23 @@ namespace TOFF.UI.Pages.Options
             {
                 Title = "Add Path Translation",
                 Width = Dim.Percent(50),
-                Height = Dim.Percent(50),
             };
+
+            translationWizard.Padding.Thickness = new Thickness(2, 1, 2, 1);
+
+            View inputView = new View()
+            {
+                X = 0,
+                Y = 0,
+                Width = Dim.Percent(60),
+                Height = Dim.Fill(),
+                CanFocus = true,
+            };
+            inputView.Margin.Thickness = new Thickness(0, 0, 4, 0);
 
             Label description = new Label()
             {
-                X = Pos.AnchorEnd() + 1,
+                X = Pos.Right(inputView),
                 Y = 0,
                 Width = Dim.Percent(40),
                 Height = 9,
@@ -116,7 +141,7 @@ namespace TOFF.UI.Pages.Options
             {
                 X = 0,
                 Y = Pos.Bottom(clientPathLabel),
-                Width = Dim.Percent(50),
+                Width = Dim.Fill(),
             };
 
             Label localPathLabel = new Label()
@@ -130,13 +155,13 @@ namespace TOFF.UI.Pages.Options
             {
                 X = 0,
                 Y = Pos.Bottom(localPathLabel),
-                Width = Dim.Percent(50),
+                Width = Dim.Fill(),
             };
 
             Button directorySelectButton = new Button()
             {
-                X = 0,
-                Y = Pos.Bottom(localPath),
+                X = Pos.Right(localPathLabel) + 1,
+                Y = Pos.Bottom(clientPath),
                 Title = "Select Folder"
             };
 
@@ -181,25 +206,21 @@ namespace TOFF.UI.Pages.Options
                 }
             };
 
-            clientPath.HasFocusChanged += (_, e) =>
+            inputView.FocusedChanged += (_, e) =>
             {
                 if (e.NewFocused == clientPath)
                 {
                     description.Text = "The path you want to translate as it appears in the torrent client. In a Docker Compose file, this would be the 'destination' of a volume mount";
                 }
-            };
-
-            localPath.HasFocusChanged += (_, e) =>
-            {
-                if (e.NewFocused == localPath)
+                if (e.NewFocused == localPath || e.NewFocused == directorySelectButton)
                 {
                     description.Text = "The destination path that the path should be translated to. In a Docker Compose file, this would be the part 'source' of a volume mount";
                 }
             };
 
+            inputView.Add(clientPathLabel, clientPath, localPathLabel, directorySelectButton, localPath);
 
-
-            translationWizard.Add(description, clientPathLabel, clientPath, localPathLabel, localPath, directorySelectButton);
+            translationWizard.Add(inputView, description);
             translationWizard.AddButton(cancelButton);
             translationWizard.AddButton(submitButton);
 
@@ -322,10 +343,23 @@ namespace TOFF.UI.Pages.Options
         {
             Dialog updateWizard = new Dialog()
             {
-                Title = "Add Path Translation",
+                Title = "Edit Path Translation",
                 Width = Dim.Percent(50),
                 Height = Dim.Percent(50),
             };
+
+            updateWizard.Padding.Thickness = new Thickness(2, 1, 2, 1);
+
+            View inputView = new View()
+            {
+                X = 0,
+                Y = 0,
+                Width = Dim.Percent(60),
+                Height = Dim.Fill(),
+                CanFocus = true,
+            };
+            inputView.Margin.Thickness = new Thickness(0, 0, 4, 0);
+
 
             Label description = new Label()
             {
@@ -347,7 +381,7 @@ namespace TOFF.UI.Pages.Options
             {
                 X = 0,
                 Y = Pos.Bottom(clientPathLabel),
-                Width = Dim.Percent(50),
+                Width = Dim.Fill(),
                 Text = observable[i].Key,
             };
 
@@ -362,14 +396,14 @@ namespace TOFF.UI.Pages.Options
             {
                 X = 0,
                 Y = Pos.Bottom(localPathLabel),
-                Width = Dim.Percent(50),
+                Width = Dim.Fill(),
                 Text = observable[i].Value,
             };
 
             Button directorySelectButton = new Button()
             {
-                X = 0,
-                Y = Pos.Bottom(localPath),
+                X = Pos.Right(localPathLabel) + 1,
+                Y = Pos.Bottom(clientPath),
                 Title = "Select Folder"
             };
 
@@ -420,23 +454,21 @@ namespace TOFF.UI.Pages.Options
                 }
             };
 
-            clientPath.HasFocusChanged += (_, e) =>
+            inputView.FocusedChanged += (_, e) =>
             {
                 if (e.NewFocused == clientPath)
                 {
                     description.Text = "The path you want to translate as it appears in the torrent client. In a Docker Compose file, this would be the 'destination' of a volume mount";
                 }
-            };
-
-            localPath.HasFocusChanged += (_, e) =>
-            {
-                if (e.NewFocused == localPath)
+                if (e.NewFocused == localPath || e.NewFocused == directorySelectButton)
                 {
                     description.Text = "The destination path that the path should be translated to. In a Docker Compose file, this would be the part 'source' of a volume mount";
                 }
             };
 
-            updateWizard.Add(description, clientPathLabel, clientPath, localPathLabel, localPath, directorySelectButton);
+            inputView.Add(clientPathLabel, clientPath, localPathLabel, directorySelectButton, localPath);
+
+            updateWizard.Add(inputView, description);
             updateWizard.AddButton(cancelButton);
             updateWizard.AddButton(deleteButton);
             updateWizard.AddButton(submitButton);
@@ -502,7 +534,7 @@ namespace TOFF.UI.Pages.Options
                 X = Pos.Center(),
                 Y = Pos.Center(),
                 AllowsMultipleSelection = false,
-
+                
             };
 
             if(currentPath != null)
@@ -519,6 +551,38 @@ namespace TOFF.UI.Pages.Options
 
             _navigationService.RunDialog(directorySelector);
             return result;
+
+        }
+
+        private void ShowAboutPopup()
+        {
+            Dialog infoPopup = new Dialog()
+            {
+                X = Pos.Center(),
+                Y = Pos.Center(),
+                Title = "What is this?",
+            };
+
+            infoPopup.Padding.Thickness = new Thickness(2, 1, 2, 2);
+
+
+            Label instructionLabel = new Label()
+            {
+                X = 0,
+                Y = 0,
+                Text = "Define rules for translating parts of a path as they appear in the torrent client\n" +
+                       "to how they appear on the host machine\n\n" +
+                       "Useful for when the client is hosted in Docker with a mount position that differs to the host\n\n" +
+                       "e.g. A translation of /Data -> /mnt/disk1 would replace the instance of /Data with /mnt/disk1\n" +
+                       "     in any given path, enabling the program to properly compare torrent files to the file list."
+
+            };
+
+            infoPopup.Add(instructionLabel);
+            infoPopup.AddButton(new Button() { Text = "OK" });
+
+
+            _navigationService.RunDialog(infoPopup);
 
         }
 

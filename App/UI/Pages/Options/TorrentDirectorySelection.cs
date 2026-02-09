@@ -14,6 +14,7 @@ namespace TOFF.UI.Pages.Options
 
         public TorrentDirectorySelection(AppStateService appState, NavigationService navigation)
         {
+            //TODO: figure out why the search/find entry doesn't work.
             var directorySelector = new OpenDialog()
             {
                 Title = "Torrent Download Directory",

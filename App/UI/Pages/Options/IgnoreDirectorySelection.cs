@@ -40,7 +40,10 @@ namespace TOFF.UI.Pages.Options
 
             ignoreList.OpenSelectedItem += (_, e) =>
             {
-                EditPopup((int)e.Item);
+                if(e.Item != null)
+                {
+                    EditPopup((int)e.Item);
+                }
             };
 
             Add(ignoreList);
@@ -82,7 +85,7 @@ namespace TOFF.UI.Pages.Options
                 Text = "Back",
             };
 
-            shortcutBar.Add(infoShortcut, addNewShortcut, backShortcut);
+            shortcutBar.Add(backShortcut, addNewShortcut, infoShortcut);
 
             Add(divider, shortcutBar);
 
@@ -107,8 +110,11 @@ namespace TOFF.UI.Pages.Options
             {
                 X = Pos.Center(),
                 Y = Pos.Center(),
-                Title = "Add Directory To Ignore"
+                Title = "Add Directory To Ignore",
+                Width = Dim.Percent(40),
             };
+
+            addNewPopup.Padding.Thickness = new Terminal.Gui.Drawing.Thickness(2, 1, 2, 1);
 
             var label = new Label()
             {
@@ -120,7 +126,7 @@ namespace TOFF.UI.Pages.Options
             var textField = new TextField()
             {
                 X = Pos.Right(label) + 1,
-                Y = 1,
+                Y = 0,
                 Width = Dim.Fill() - 1
             };
 
@@ -164,8 +170,11 @@ namespace TOFF.UI.Pages.Options
             {
                 X = Pos.Center(),
                 Y = Pos.Center(),
-                Title = "Add Directory To Ignore"
+                Title = "Update Directory To Ignore",
+                Width = Dim.Percent(40),
             };
+
+            addNewPopup.Padding.Thickness = new Terminal.Gui.Drawing.Thickness(2, 1, 2, 1);
 
             var label = new Label()
             {
@@ -178,7 +187,7 @@ namespace TOFF.UI.Pages.Options
             {
                 Text = ignoreListSource.ElementAt(index),
                 X = Pos.Right(label) + 1,
-                Y = 1,
+                Y = 0,
                 Width = Dim.Fill() - 1
             };
 
@@ -187,13 +196,14 @@ namespace TOFF.UI.Pages.Options
             {
                 if (e.KeyCode == Key.Enter)
                 {
-                    addNewPopup.Result = 1;
+                    addNewPopup.Result = 2;
                 }
             };
 
             addNewPopup.Add(label, textField);
 
             addNewPopup.AddButton(new() { Title = "Cancel", IsDefault = false });
+            addNewPopup.AddButton(new() { Title = "Delete", IsDefault = false });
             addNewPopup.AddButton(new() { Title = "Update", IsDefault = true });
 
 
@@ -206,9 +216,12 @@ namespace TOFF.UI.Pages.Options
                     ignoreListSource[index] = textField.Text.ToString();
                 }
             }
-
-
             if (addNewPopup.Result == 1)
+            {
+                ignoreListSource.RemoveAt(index);
+            }
+
+            if (addNewPopup.Result == 2)
             {
                 ignoreListSource[index] = textField.Text.ToString();
             }
@@ -221,15 +234,19 @@ namespace TOFF.UI.Pages.Options
             {
                 X = Pos.Center(),
                 Y = Pos.Center(),
-                Title = "What is this?"
+                Title = "What is this?",
             };
+
+            infoPopup.Padding.Thickness = new Terminal.Gui.Drawing.Thickness(2, 1, 2, 2);
+
 
             Label instructionLabel = new Label()
             {
                 X = 0,
                 Y = 0,
-                Text = "Ignored directories should be formatted as they appear in the torrent client.\n" +
-                        "Skips requesting additional details for torrents that have files in folders outside of of the system [green]Torrent Directory[/] ",
+                Text = "Skips requesting additional details for torrents that have files in folders\noutside of of the currently set Torrent Directory\n\n" +
+                       "Ignored directories should be formatted as they appear in the torrent client.\n" +
+                       "i.e. before any path translation rules are applied",
 
             };
 
