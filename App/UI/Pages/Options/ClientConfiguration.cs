@@ -194,13 +194,17 @@ namespace TOFF.UI.Pages.Options
                 Title = $"Editing {item.Name}",
                 X = Pos.Center(),
                 Y = Pos.Center(),
+                Width = 40,
             };
+
+            editDialogue.Padding.Thickness = new Thickness(2, 1, 2, 1);
 
             var label = new Label()
             {
                 Title = "New Value:",
-                X = 1,
-                Y = 0
+                X = 0,
+                Y = 0,
+                Height = 1,
             };
 
             editDialogue.Add(label);
@@ -209,12 +213,14 @@ namespace TOFF.UI.Pages.Options
             ////replace this with selectables if presets exist
             if (item.Presets == null)
             {
+                //TODO: figure out why a scrollbar shows to the right of the text field
                 var textField = new TextField()
                 {
                     Text = item.Value,
                     X = Pos.Right(label) + 1,
-                    Y = 1,
-                    Width = Dim.Fill() - 1
+                    Y = 0,
+                    Width = Dim.Fill(),
+                    Height = 1,
                 };
 
                 textField.TextChanged += (s, e) =>
