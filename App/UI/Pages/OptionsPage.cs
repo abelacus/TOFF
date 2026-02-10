@@ -26,7 +26,7 @@ namespace TOFF.UI.Pages
                 {
                     Text = "Torrent Client",
                     Tag = typeof(ClientSelection),
-                    DataDataSource = () => [_appState.clientSelection]
+                    DataDataSource = () => [_appState.clientSelection],
                 },
                 new DataSourceTreeNode
                 {
@@ -77,9 +77,37 @@ namespace TOFF.UI.Pages
 
             optionsTree.Style.ExpandableSymbol = null;
 
-
             optionsTree.AddObjects(options);
             optionsTree.ExpandAll();
+
+            //visually discern non-interactable items
+            optionsTree.DrawLine += (_, e) =>
+            {
+                if(e.Model.Children.Count() == 0)
+                {
+                    for (int i = e.IndexOfModelText - 2; i < e.Cells.Count; i++)
+                    {
+                        var cell = e.Cells[i];
+                        e.Cells[i] = new Cell
+                        {
+                            Grapheme = cell.Grapheme,
+                            Attribute = new Terminal.Gui.Drawing.Attribute(StandardColor.CadetBlue, StandardColor.RaisinBlack, TextStyle.None),
+                            IsDirty = cell.IsDirty
+                        };
+                    }
+                }
+
+            };
+
+            //disable collapsing of tree elements
+            optionsTree.KeyBindings.Remove(Key.CursorLeft);
+            optionsTree.KeyDown += (_, e) =>
+            {
+                if (e.KeyCode == Key.CursorLeft)
+                {
+                    e.Handled = true;
+                }
+            };
 
             optionsTree.SelectionChanged += (_, e) =>
             {
