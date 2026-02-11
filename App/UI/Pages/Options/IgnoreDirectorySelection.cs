@@ -244,9 +244,12 @@ namespace TOFF.UI.Pages.Options
             {
                 X = 0,
                 Y = 0,
-                Text = "Skips requesting additional details for torrents that have files in folders\noutside of of the currently set Torrent Directory\n\n" +
-                       "Ignored directories should be formatted as they appear in the torrent client.\n" +
-                       "i.e. before any path translation rules are applied",
+                Text = "Skips requesting additional details for torrents that have files in folders\n" +
+                       "outside of of the currently set Torrent Directory\n\n" +
+                       "Ignored directories should be formatted as they appear in the torrent client\n" +
+                       "before any path translation rules are applied\n\n" +
+                       "Can likely be ignored unless you have a large number of torrents being saved\n" +
+                       "to multiple download directories",
 
             };
 

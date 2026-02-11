@@ -575,10 +575,18 @@ namespace TOFF.UI.Pages.Options
                        "Useful for when the client is hosted in Docker with a mount position that differs to the host\n\n" +
                        "e.g. A translation of /Data -> /mnt/disk1 would replace the instance of /Data with /mnt/disk1\n" +
                        "     in any given path, enabling the program to properly compare torrent files to the file list."
-
             };
 
-            infoPopup.Add(instructionLabel);
+            Label autoTranslateLabel = new Label()
+            {
+                X = 0,
+                Y = Pos.Bottom(instructionLabel) + 1,
+                Text = "IMPORTANT: Automatic translation is performed when the torrent client is on windows and TOFF is\n" +
+                       "running on linux such that e.g. C:\\ gets converted to /c/ prior to applying any translations."
+            };
+            autoTranslateLabel.SetScheme(new Scheme(new Terminal.Gui.Drawing.Attribute(StandardColor.BrightRed, StandardColor.RaisinBlack)));
+
+            infoPopup.Add(instructionLabel, autoTranslateLabel);
             infoPopup.AddButton(new Button() { Text = "OK" });
 
 

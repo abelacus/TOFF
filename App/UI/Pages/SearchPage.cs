@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.Input;
@@ -165,6 +166,10 @@ namespace TOFF.UI.Pages
                     continue;
                 }
 
+                //migrate the base path to match the current OS form
+                //required because e.g. if the torrent client is on windows but the application is on linux, Path.Join will return the working directory + basePath.
+                needed.SavePath = ConvertPathToLocalForm(needed.SavePath);
+
                 FileDetails[] fileDetails = _appState.torrentClient.GetFilesForTorrent(needed).Result;
 
                 foreach (FileDetails file in fileDetails)
@@ -225,6 +230,29 @@ namespace TOFF.UI.Pages
                 {
                     path = path.Replace(item.Key, item.Value);
                     break; //not sure why there'd be any case where someone would want to translate an already translated value
+                }
+            }
+
+            return path;
+        }
+
+        private string ConvertPathToLocalForm(string path)
+        {
+            bool IsWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            if (IsWindows)
+            {
+                //TODO. need to decide how to handle these. will likely be considerably more difficult to do
+                return path;
+            }
+            else //linux/MacOS. may need additional check, not sure if they behave the same.
+            {
+                if (path.Contains(@"\")) //double slashes should mean windows url
+                {
+                    string replaced = path.Replace(@"\", "/");
+                    replaced = replaced.Replace(":", "");
+                    replaced = replaced.Insert(0, "/");
+
+                    return replaced;
                 }
             }
 
