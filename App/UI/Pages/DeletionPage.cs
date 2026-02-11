@@ -58,7 +58,10 @@ namespace TOFF.UI.Pages
                 _appState.toBeDeleted = Array.Empty<Models.FileInformation>();
                 _appState.filesMissingFromClient = Array.Empty<Models.FileInformation>();
 
-                spinner.Dispose(); //call dispose before navigating back; crashes otherwise. might want to find a way to handle this within NavigateBack.
+                App.Invoke(() =>
+                {
+                    spinner.Dispose(); //call dispose before navigating back; crashes otherwise. might want to find a way to handle this within NavigateBack.
+                });
 
                 _navigationService.NavigateBack();
             });
