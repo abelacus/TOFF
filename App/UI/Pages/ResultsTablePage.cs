@@ -92,6 +92,9 @@ namespace TOFF.UI.Pages
                 }
             };
 
+            //TODO: show popup with all info when pressing 'enter' on selected file. should show non-truncated file name and directory.
+            // include 'select' button to mark file for deletion alongside 'ok' to close popup.
+
             Add(table);
 
             Line divider = new Line()

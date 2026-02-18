@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 using Terminal.Gui.App;
+using Terminal.Gui.Drivers;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 using TOFF.UI;
@@ -31,7 +32,7 @@ namespace TOFF.Services
 
         public void Init<T>() where T : View
         { 
-            using IApplication app = Application.Create().Init();
+            using IApplication app = Application.Create().Init(DriverRegistry.Names.DOTNET);
             application = app;
             _top = new Runnable();
             app.Mouse.IsMouseDisabled = true;

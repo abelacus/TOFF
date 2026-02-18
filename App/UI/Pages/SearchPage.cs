@@ -106,7 +106,7 @@ namespace TOFF.UI.Pages
                     Y = Pos.Center(),
                 };
 
-                errorDialog.SetScheme(new Scheme(new Terminal.Gui.Drawing.Attribute(Color.BrightRed, Color.Black)));
+                errorDialog.SetScheme(new Scheme(new Terminal.Gui.Drawing.Attribute(StandardColor.BrightRed, StandardColor.RaisinBlack)));
 
                 //validate current settings
                 Label errorLabel = new Label()

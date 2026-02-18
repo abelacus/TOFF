@@ -101,7 +101,7 @@ namespace TOFF.UI.Pages.Options
                 Y = Pos.Center(),
             };
 
-            errorDialog.SetScheme(new Scheme(new Terminal.Gui.Drawing.Attribute(Color.BrightRed, Color.Black)));
+            errorDialog.SetScheme(new Scheme(new Terminal.Gui.Drawing.Attribute(StandardColor.BrightRed, StandardColor.RaisinBlack)));
 
             if (bool.Parse(configItems[1].Value))
             {
@@ -163,7 +163,7 @@ namespace TOFF.UI.Pages.Options
                     Y = Pos.Center(),
                 };
 
-                errorDialog.SetScheme(new Scheme(new Terminal.Gui.Drawing.Attribute(Color.BrightRed, Color.Black)));
+                errorDialog.SetScheme(new Scheme(new Terminal.Gui.Drawing.Attribute(StandardColor.BrightRed, StandardColor.RaisinBlack)));
 
                 var errorLabel = new Label()
                 {
