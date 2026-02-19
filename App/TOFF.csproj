@@ -6,14 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PublishAot>true</PublishAot>
+    <PublishSingleFile>true</PublishSingleFile>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <SelfContained>true</SelfContained>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="UI\NewFolder1\**" />
-    <EmbeddedResource Remove="UI\NewFolder1\**" />
-    <None Remove="UI\NewFolder1\**" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
@@ -31,14 +27,7 @@
 
 	<ItemGroup>
     <TrimmerRootAssembly Include="TorrentClient" />
+    <TrimmerRootAssembly Include="Terminal.Gui" />
+    <TrimmerRootAssembly Include="TOFF" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include=".tui\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include=".tui\config.json" />
-  </ItemGroup>
-
 </Project>
