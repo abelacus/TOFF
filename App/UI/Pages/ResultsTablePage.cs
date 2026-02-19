@@ -122,7 +122,7 @@ namespace TOFF.UI.Pages
             Shortcut deleteSelectedShortcut = new Shortcut()
             {
                 Action = StartRemoveJob,
-                Key = Key.D.WithCtrl.WithShift.WithAlt,
+                Key = Key.D.WithCtrl.WithAlt,
                 Text = "Delete Selected",
             };
 
