@@ -30,20 +30,21 @@ namespace TOFF.UI.Pages.Options
             {
                 X = 0,
                 Y = 0,
-                AllowsMarking = false,
-                AllowsMultipleSelection = false,
+                ShowMarks = false,
+                MarkMultiple = false,
                 Width = Dim.Fill(),
                 Height = Dim.Fill() - 2,
             };
 
             ignoreList.SetSource(ignoreListSource);
 
-            ignoreList.OpenSelectedItem += (_, e) =>
+            ignoreList.Accepting += (_, e) =>
             {
-                if(e.Item != null)
+                if(ignoreList.SelectedItem != null && ignoreList.Source.Count > 0)
                 {
-                    EditPopup((int)e.Item);
+                    EditPopup((int)ignoreList.SelectedItem);
                 }
+                e.Handled = true;
             };
 
             Add(ignoreList);
@@ -166,6 +167,11 @@ namespace TOFF.UI.Pages.Options
 
         private void EditPopup(int index)
         {
+            if(ignoreListSource.Count == 0)
+            {
+                return;
+            }
+
             Dialog addNewPopup = new Dialog()
             {
                 X = Pos.Center(),

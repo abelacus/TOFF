@@ -37,23 +37,24 @@ namespace TOFF.UI.Pages.Options
                 Y = 0,
                 Width = Dim.Fill(),
                 Height = Dim.Fill() - 2,
-                AllowsMarking = false,
-                AllowsMultipleSelection = false,
+                ShowMarks = false,
+                MarkMultiple = false,
             };
 
             configList.SetSource(new ObservableCollection<ConfigItemValue>(configItems));
 
-            configList.OpenSelectedItem += (_, ev) =>
+            configList.Accepting += (_, e) =>
             {
-                if (ev.Value != null)
+                if (configList.SelectedItem != null)
                 {
-                    ConfigItemValue entry = (ConfigItemValue)ev.Value;
+                    ConfigItemValue entry = (ConfigItemValue)configList.Source.ToList()[(int)configList.SelectedItem];
 
-                    string newVal = EditConfigItem((ConfigItemValue)ev.Value);
+                    string newVal = EditConfigItem(entry);
 
                     configItems.First(e => e.Name == entry.Name).Value = newVal;
 
                 }
+                e.Handled = true;
             };
 
             Add(configList);
@@ -252,9 +253,9 @@ namespace TOFF.UI.Pages.Options
 
                 optionsSelector.Value = item.Presets.IndexOf(item.Value);
 
-                optionsSelector.ValueChanged += (_, ev) =>
+                optionsSelector.ValueChanged += (_, e) =>
                 {
-                    result = item.Presets[(int)ev.Value];
+                    result = item.Presets[(int)e.NewValue];
                 };
 
                 //required for save on enter

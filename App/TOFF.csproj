@@ -14,7 +14,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
     <PackageReference Include="Mono.Unix" Version="7.1.0-final.1.21458.1" />
-    <PackageReference Include="Terminal.Gui" Version="2.0.0-develop.4828" />
+    <PackageReference Include="Terminal.Gui" Version="2.0.0-develop.5039" />
   </ItemGroup>
 
   <ItemGroup>

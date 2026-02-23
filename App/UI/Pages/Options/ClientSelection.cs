@@ -31,8 +31,8 @@ namespace TOFF.UI.Pages.Options
                 Y = 0,
                 Width = Dim.Fill(),
                 Height = Dim.Fill() - 2,
-                AllowsMarking = true,
-                AllowsMultipleSelection = false,
+                ShowMarks = true,
+                MarkMultiple = false,
             };
 
             clientsList.SetSource(new ObservableCollection<string>(_torrentClientService.GetTorrentClients()));
@@ -42,9 +42,9 @@ namespace TOFF.UI.Pages.Options
             clientsList.MarkUnmarkSelectedItem();
             clientsList.SelectedItem = 0;
 
-            clientsList.OpenSelectedItem += (_, val) =>
+            clientsList.Accepting += (_, e) =>
             {
-                _appState.clientSelection = val.Value.ToString();
+                _appState.clientSelection = clientsList.Source.ToList()[(int)clientsList.SelectedItem].ToString();
                 navigationService.NavigateBack();
 
             };

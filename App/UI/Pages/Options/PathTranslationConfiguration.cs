@@ -17,7 +17,7 @@ namespace TOFF.UI.Pages.Options
         private readonly AppStateService _appState;
 
         private Dictionary<string, string> translations;
-        private ObservableCollection<KeyValueListItem> observable;
+        private ObservableCollection<KeyValueListItem> translationListSource;
 
         public PathTranslationConfiguration(AppStateService appState, NavigationService navigationService)
         {
@@ -34,19 +34,20 @@ namespace TOFF.UI.Pages.Options
                 Y = 0,
                 Width = Dim.Fill(),
                 Height = Dim.Fill() - 2,
-                AllowsMarking = false,
+                ShowMarks = false,
             };
 
-            observable = new ObservableCollection<KeyValueListItem>(translations.Select(e => new KeyValueListItem(e)));
+            translationListSource = new ObservableCollection<KeyValueListItem>(translations.Select(e => new KeyValueListItem(e)));
 
-            translationList.SetSource(observable);
+            translationList.SetSource(translationListSource);
 
-            translationList.OpenSelectedItem += (_, e) =>
+            translationList.Accepting += (_, e) =>
             {
-                if(e.Item != null)
+                if(translationList.SelectedItem != null && translationListSource.Count > 0)
                 {
-                    UpdateTranslation((int)e.Item);
+                    UpdateTranslation((int)translationList.SelectedItem);
                 }
+                e.Handled = true;
             };
 
             Add(translationList);
@@ -305,22 +306,22 @@ namespace TOFF.UI.Pages.Options
         {
             foreach(var entry in translations)
             {
-                if(observable.Any(e => e.Key == entry.Key))
+                if(translationListSource.Any(e => e.Key == entry.Key))
                 {
-                    observable[observable.IndexOf(observable.First(e => e.Key == entry.Key))].Value = entry.Value;
+                    translationListSource[translationListSource.IndexOf(translationListSource.First(e => e.Key == entry.Key))].Value = entry.Value;
                 }
                 else
                 {
-                    observable.Add(new KeyValueListItem(entry));
+                    translationListSource.Add(new KeyValueListItem(entry));
                 }
             }
 
             //remove entries no longer present
-            foreach(var entry in observable.ToList())
+            foreach(var entry in translationListSource.ToList())
             {
                 if (!translations.ContainsKey(entry.Key))
                 {
-                    observable.Remove(entry);
+                    translationListSource.Remove(entry);
                 }
             }
         }
@@ -382,7 +383,7 @@ namespace TOFF.UI.Pages.Options
                 X = 0,
                 Y = Pos.Bottom(clientPathLabel),
                 Width = Dim.Fill(),
-                Text = observable[i].Key,
+                Text = translationListSource[i].Key,
             };
 
             Label localPathLabel = new Label()
@@ -397,7 +398,7 @@ namespace TOFF.UI.Pages.Options
                 X = 0,
                 Y = Pos.Bottom(localPathLabel),
                 Width = Dim.Fill(),
-                Text = observable[i].Value,
+                Text = translationListSource[i].Value,
             };
 
             Button directorySelectButton = new Button()
@@ -510,16 +511,16 @@ namespace TOFF.UI.Pages.Options
             //delete button
             if(updateWizard.Result == 1)
             {
-                translations.Remove(observable[i].Key);
+                translations.Remove(translationListSource[i].Key);
                 UpdateListView();
             }
 
             //update button
             if (updateWizard.Result == 2)
             {
-                if (observable[i].Key != clientPath.Text)
+                if (translationListSource[i].Key != clientPath.Text)
                 {
-                    translations.Remove(observable[i].Key);
+                    translations.Remove(translationListSource[i].Key);
                 }
                 translations[clientPath.Text] = localPath.Text;
                 UpdateListView();
