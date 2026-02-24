@@ -93,8 +93,118 @@ namespace TOFF.UI.Pages
                 }
             };
 
-            //TODO: show popup with all info when pressing 'enter' on selected file. should show non-truncated file name and directory.
+            // show popup with all info when pressing 'enter' on selected file. should show non-truncated file name and directory.
             // include 'select' button to mark file for deletion alongside 'ok' to close popup.
+            table.CellActivated += (_, e) =>
+            {
+                FileInformation fileInfo = _appState.filesMissingFromClient[e.Row];
+
+                Scheme textViewScheme = new Scheme()
+                {
+                    ReadOnly = new Terminal.Gui.Drawing.Attribute(StandardColor.LightBlue, StandardColor.RaisinBlack)
+                };
+
+                Dialog infoPopup = new Dialog()
+                {
+                    Title = "File Info",
+                    Width = Dim.Percent(65),
+                    X = Pos.Center(),
+                    Y = Pos.Center(),
+                };
+
+                infoPopup.Padding.Thickness = new Thickness(2, 1, 2, 1);
+
+                Label nameLabel = new Label()
+                {
+                    Title = "File Name     :",
+                    X = 0,
+                    Y = 0,
+                    Height = 1,
+                };
+
+                TextView nameValue = new TextView()
+                {
+                    Text = fileInfo.savePath,
+                    X = Pos.Right(nameLabel) + 1,
+                    Y = 0,
+                    Width = Dim.Fill(),
+                    Height = Dim.Func((v) => { //This should probably be improved. Dim.Auto doesn't work as expected, leaves excess lines or uses a height of 0
+                        return (int)Math.Ceiling((decimal)fileInfo.savePath.Length / (decimal)(this.Frame.Width * 0.65 - 19));
+                    }),
+                    CanFocus = false,
+                    WordWrap = true,
+                    ReadOnly = true,
+                };
+                nameValue.SetScheme(textViewScheme);
+
+
+                Label linksLabel = new Label()
+                {
+                    Title = "Hard Links    :",
+                    X = 0,
+                    Y = Pos.Bottom(nameValue),
+                };
+
+                TextView linksValue = new TextView()
+                {
+                    Text = fileInfo.links.ToString(),
+                    X = Pos.Right(linksLabel) + 1,
+                    Y = linksLabel.Y,
+                    Width = fileInfo.links.ToString().Length,
+                    Height = 1,
+                    CanFocus = false,
+                    WordWrap = true,
+                    ReadOnly = true,
+                };
+                linksValue.SetScheme(textViewScheme);
+
+                Label creationDateLabel = new Label()
+                {
+                    Title = "Creation Date :",
+                    X = 0,
+                    Y = Pos.Bottom(linksLabel),
+                };
+
+                TextView creationDateValue = new TextView()
+                {
+                    Text = fileInfo.creationDate.ToString("yyyy-MM-dd"),
+                    X = Pos.Right(creationDateLabel) + 1,
+                    Y = creationDateLabel.Y,
+                    Width = fileInfo.creationDate.ToString("yyyy-MM-dd").Length,
+                    Height = 1,
+                    CanFocus = false,
+                    WordWrap = true,
+                    ReadOnly = true,
+                };
+                creationDateValue.SetScheme(textViewScheme);
+
+                Label modifiedDateLabel = new Label()
+                {
+                    Title = "Modified Date :",
+                    X = 0,
+                    Y = Pos.Bottom(creationDateLabel),
+                };
+
+                TextView modifiedDateValue = new TextView()
+                {
+                    Text = fileInfo.lastModifiedDate.ToString("yyyy-MM-dd"),
+                    X = Pos.Right(modifiedDateLabel) + 1,
+                    Y = modifiedDateLabel.Y,
+                    Width = fileInfo.lastModifiedDate.ToString("yyyy-MM-dd").Length,
+                    Height = 1,
+                    CanFocus = false,
+                    WordWrap = true,
+                    ReadOnly = true,
+                };
+                modifiedDateValue.SetScheme(textViewScheme);
+
+                infoPopup.Add(nameLabel, nameValue, linksLabel, linksValue, creationDateLabel, creationDateValue, modifiedDateLabel, modifiedDateValue);
+
+
+                infoPopup.AddButton(new() { Title = "Ok" });
+
+                _navigationService.RunDialog(infoPopup);
+            };
 
             Add(table);
 
