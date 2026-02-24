@@ -200,10 +200,21 @@ namespace TOFF.UI.Pages
 
                 infoPopup.Add(nameLabel, nameValue, linksLabel, linksValue, creationDateLabel, creationDateValue, modifiedDateLabel, modifiedDateValue);
 
+                Button selectButton = new Button()
+                {
+                    Title = table.MultiSelectedRegions.Any(s => s.Rectangle.Location.Y == e.Row) ? "De-Select" : "Select",
+                };
+
+                infoPopup.AddButton(selectButton);
 
                 infoPopup.AddButton(new() { Title = "Ok" });
 
                 _navigationService.RunDialog(infoPopup);
+
+                if(infoPopup.Result != 1)
+                {
+                    table.NewKeyDownEvent(Key.Space);
+                }
             };
 
             Add(table);
