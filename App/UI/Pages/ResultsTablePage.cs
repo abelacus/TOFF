@@ -34,6 +34,7 @@ namespace TOFF.UI.Pages
                 FullRowSelect = true,
                 CollectionNavigator = null,
             };
+            table.KeyBindings.ReplaceCommands(Key.Space, Command.Toggle);
             table.Style.AlwaysShowHeaders = true;
 
             //TODO: revisit when/if the Terminal.Gui TableView gains the ability to visually discern between toggled entries and the one that's been selected with the arrow keys
