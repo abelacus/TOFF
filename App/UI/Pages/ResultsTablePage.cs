@@ -45,23 +45,37 @@ namespace TOFF.UI.Pages
             //    Disabled = new Terminal.Gui.Drawing.Attribute(Color.Blue, Color.White),
             //};
 
+            Scheme selectedStyle = new Scheme(new Terminal.Gui.Drawing.Attribute(new Color(34, 90, 109), StandardColor.AmberPhosphor));
+            Scheme selectedCursor = new Scheme(new Terminal.Gui.Drawing.Attribute(StandardColor.CornflowerBlue, StandardColor.HoneyDew));
+
             table.Style.ColumnStyles[0] = new ColumnStyle
             {
                 RepresentationGetter = (value) => value.ToString().Remove(0, _appState.torrentDirectory.Length),
-                //ColorGetter = (args) =>
-                //{
-                //    return scheme;
-                //},
+
                 Alignment = Alignment.Fill,
             };
+
+            table.Style.RowColorGetter = (args) => // ugly af but good enough i guess
+            {
+                if (table.IsSelected(0, args.RowIndex) && table.SelectedRow != args.RowIndex)
+                {
+                    return selectedStyle;
+                }
+                if(table.MultiSelectedRegions.Any(r => r.Rectangle.Location.Y == args.RowIndex) && table.SelectedRow == args.RowIndex) //don't use table.IsSelected since that returns true for the cursors position
+                {
+                    return selectedCursor;
+                }
+                return null;
+            };
+            
 
             table.Table = new EnumerableTableSource<FileInformation>(_appState.filesMissingFromClient,
                     new Dictionary<string, Func<FileInformation, object>>()
                     {
-                        { "savePath", (p) => p.savePath },
-                        { "links", (p) => p.links },
-                        { "creationDate", (p) => p.creationDate.ToShortDateString() },
-                        { "lastModifiedDate", (p) => p.lastModifiedDate.ToShortDateString() },
+                        { "File Path", (p) => p.savePath },
+                        { "Links", (p) => p.links },
+                        { "Creation Date", (p) => p.creationDate.ToShortDateString() },
+                        { "Last Modified Date", (p) => p.lastModifiedDate.ToShortDateString() },
                     }
                 );
 
@@ -90,6 +104,12 @@ namespace TOFF.UI.Pages
                     }
                     table.SetNeedsDraw();
                     e.Handled = true;
+                }
+
+                if(e.KeyCode == Key.Space)
+                {
+                    table.SetNeedsDraw(); //forces visual update on selection
+                    return;
                 }
             };
 
@@ -211,7 +231,7 @@ namespace TOFF.UI.Pages
 
                 _navigationService.RunDialog(infoPopup);
 
-                if(infoPopup.Result != 1)
+                if(infoPopup.Result != 1 && infoPopup.Canceled == false)
                 {
                     table.NewKeyDownEvent(Key.Space);
                 }
