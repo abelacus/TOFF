@@ -23,6 +23,8 @@ namespace TorrentClient.Clients.qBittorrent.Models
         queueDL,
         stalledDL,
         checkingDL,
+        stoppedDL,
+        stoppedUP,
         forcedDL,
         checkingResumeData,
         moving,
