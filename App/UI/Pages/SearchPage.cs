@@ -96,7 +96,7 @@ namespace TOFF.UI.Pages
             }
             catch (Exception e)
             {
-                Debug.WriteLine(e.Message);
+                Debug.WriteLine(e.InnerException);
 
                 //likely unable to connect
                 Dialog errorDialog = new Dialog()

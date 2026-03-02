@@ -5,4 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Transmission.API.RPC.NET" Version="4.1.6" />
+  </ItemGroup>
 </Project>
