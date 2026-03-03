@@ -23,38 +23,31 @@ namespace TOFF.UI.Pages.Options
 
             Title = "Select Torrent Client";
 
-            //TODO: replace with OptionSelector
             string currentSelection = _appState.clientSelection;
-            var clientsList = new ListView()
+
+            var clientSelection = new OptionSelector()
             {
                 X = 0,
                 Y = 0,
                 Width = Dim.Fill(),
                 Height = Dim.Fill() - 2,
-                ShowMarks = true,
-                MarkMultiple = false,
             };
 
-            clientsList.SetSource(new ObservableCollection<string>(_torrentClientService.GetTorrentClients()));
+            clientSelection.Labels = _torrentClientService.GetTorrentClients();
 
-            //marks the current selection in the UI, then sets highlighted item to first entry
-            clientsList.SelectedItem = clientsList.Source.ToList().IndexOf(currentSelection);
-            clientsList.MarkUnmarkSelectedItem();
-            clientsList.SelectedItem = 0;
+            clientSelection.Value = clientSelection.Labels.IndexOf(currentSelection);
 
-            clientsList.Accepting += (_, e) =>
+            clientSelection.ValueChanged += (_, e) =>
             {
-                _appState.clientSelection = clientsList.Source.ToList()[(int)clientsList.SelectedItem].ToString();
-                navigationService.NavigateBack();
-
+                _appState.clientSelection = clientSelection.Labels[e.NewValue ?? 0];
             };
 
-            Add(clientsList);
+            Add(clientSelection);
 
             Line divider = new Line()
             {
                 X = 0,
-                Y = Pos.Bottom(clientsList),
+                Y = Pos.Bottom(clientSelection),
                 Length = Dim.Fill(),
                 Orientation = Orientation.Horizontal,
             };
