@@ -329,7 +329,6 @@ namespace TOFF.UI.Pages.Options
 
         private void SaveAndBack()
         {
-            //TODO: save changes to app state
             _appState.PathTranslations = translations;
 
             _navigationService.NavigateBack();

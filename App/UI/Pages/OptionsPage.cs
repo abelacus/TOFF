@@ -72,7 +72,8 @@ namespace TOFF.UI.Pages
             {
                 X = 0,
                 Y = Pos.Bottom(divider),
-                AlignmentModes = AlignmentModes.StartToEnd,
+                Width = Dim.Fill(),
+                AlignmentModes = AlignmentModes.IgnoreFirstOrLast
             };
 
             optionsTree.Style.ExpandableSymbol = null;
@@ -162,7 +163,13 @@ namespace TOFF.UI.Pages
                 Text = "Find Orphans",
             };
 
-            shortcutBar.Add(backShortcut, nextStep);
+            Label versionLabel = new Label()
+            {
+                Title = "v0.0.1",
+            };
+            versionLabel.Padding.Thickness = new Thickness(0, 0, 2, 0);
+
+            shortcutBar.Add(backShortcut, nextStep, versionLabel);
 
             Add(divider, shortcutBar);
         }
