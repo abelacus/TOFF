@@ -23,7 +23,7 @@ namespace TOFF.UI.Pages.Options
 
             Title = "Select Torrent Client";
 
-            string currentSelection = _appState.clientSelection;
+            string currentSelection = _appState.preferences.clientSelection;
 
             var clientSelection = new OptionSelector()
             {
@@ -39,7 +39,7 @@ namespace TOFF.UI.Pages.Options
 
             clientSelection.ValueChanged += (_, e) =>
             {
-                _appState.clientSelection = clientSelection.Labels[e.NewValue ?? 0];
+                _appState.preferences.clientSelection = clientSelection.Labels[e.NewValue ?? 0];
             };
 
             Add(clientSelection);

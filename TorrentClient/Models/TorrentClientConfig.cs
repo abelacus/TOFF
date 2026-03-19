@@ -8,10 +8,10 @@ namespace TorrentClient.Models
 {
     public record TorrentClientConfig ()
     {
-        public string? ApiURL;
-        public bool HasAuthentication = false;
-        public string? Username;
-        public string? Password;
+        public string? ApiURL { get; set; }
+        public bool HasAuthentication { get; set; } = false;
+        public string? Username { get; set; }
+        public string? Password { get; set; }
 
         public string[] ToDetailsArray()
         {

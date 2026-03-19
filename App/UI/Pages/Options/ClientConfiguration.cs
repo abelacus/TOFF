@@ -21,10 +21,10 @@ namespace TOFF.UI.Pages.Options
             _navigationService = navigationService;
 
             configItems = new[] {
-                new ConfigItemValue("Client API URL", _appState.torrentClientConfig.ApiURL ?? "", null),
-                new ConfigItemValue("Requires Authentication", _appState.torrentClientConfig.HasAuthentication.ToString(), new List<string>{"True", "False"}),
-                new ConfigItemValue("Username", _appState.torrentClientConfig.Username ?? "", null),
-                new ConfigItemValue("Password", _appState.torrentClientConfig.Password ?? "", null),
+                new ConfigItemValue("Client API URL", _appState.preferences.torrentClientConfig.ApiURL ?? "", null),
+                new ConfigItemValue("Requires Authentication", _appState.preferences.torrentClientConfig.HasAuthentication.ToString(), new List<string>{"True", "False"}),
+                new ConfigItemValue("Username", _appState.preferences.torrentClientConfig.Username ?? "", null),
+                new ConfigItemValue("Password", _appState.preferences.torrentClientConfig.Password ?? "", null),
             };
 
             ConfigItemValue? currentSelection = null;
@@ -142,7 +142,7 @@ namespace TOFF.UI.Pages.Options
 
 
             //update global state and navigate back
-            _appState.torrentClientConfig = new TorrentClientConfig()
+            _appState.preferences.torrentClientConfig = new TorrentClientConfig()
             {
                 ApiURL = configItems[0].Value,
                 HasAuthentication = bool.Parse(configItems[1].Value),
@@ -155,7 +155,7 @@ namespace TOFF.UI.Pages.Options
 
         private void DiscardAndBack()
         {
-            if (configItems[0].Value.Length == 0 && (_appState.torrentClientConfig.ApiURL == null || _appState.torrentClientConfig.ApiURL.Length == 0))//don't let them return if an api url hasn't been set
+            if (configItems[0].Value.Length == 0 && (_appState.preferences.torrentClientConfig.ApiURL == null || _appState.preferences.torrentClientConfig.ApiURL.Length == 0))//don't let them return if an api url hasn't been set
             {
                 var errorDialog = new Dialog()
                 {
@@ -181,8 +181,8 @@ namespace TOFF.UI.Pages.Options
                 return;
             }
 
-            if(_appState.torrentClientConfig.ApiURL == null || _appState.torrentClientConfig.ApiURL.Length == 0) {
-                _appState.torrentClientConfig.ApiURL = configItems[0].Value;
+            if(_appState.preferences.torrentClientConfig.ApiURL == null || _appState.preferences.torrentClientConfig.ApiURL.Length == 0) {
+                _appState.preferences.torrentClientConfig.ApiURL = configItems[0].Value;
             }
 
             _navigationService.NavigateBack();

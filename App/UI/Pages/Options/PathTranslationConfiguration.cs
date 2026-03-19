@@ -26,7 +26,7 @@ namespace TOFF.UI.Pages.Options
 
             Title = "Path Translations";
 
-            translations = _appState.PathTranslations;
+            translations = _appState.preferences.PathTranslations;
 
             ListView translationList = new ListView()
             {
@@ -329,7 +329,7 @@ namespace TOFF.UI.Pages.Options
 
         private void SaveAndBack()
         {
-            _appState.PathTranslations = translations;
+            _appState.preferences.PathTranslations = translations;
 
             _navigationService.NavigateBack();
         }

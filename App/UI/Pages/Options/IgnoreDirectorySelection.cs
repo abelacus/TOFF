@@ -24,7 +24,7 @@ namespace TOFF.UI.Pages.Options
             _navigationService = navigationService;
             Title = "Directories To Ignore";
 
-            ignoreListSource = new ObservableCollection<string>(_appState.IgnoreDirectories);
+            ignoreListSource = new ObservableCollection<string>(_appState.preferences.IgnoreDirectories);
 
             ignoreList = new ListView()
             {
@@ -100,7 +100,7 @@ namespace TOFF.UI.Pages.Options
 
         private void SaveAndBack()
         {
-            _appState.IgnoreDirectories = ignoreListSource.ToArray();
+            _appState.preferences.IgnoreDirectories = ignoreListSource.ToArray();
 
             _navigationService.NavigateBack();
         }

@@ -85,7 +85,7 @@ namespace TOFF.UI.Pages
         {
             try
             {
-                _appState.torrentClient = _clientService.CreateClientInstance(_appState.clientSelection, _appState.torrentClientConfig);
+                _appState.torrentClient = _clientService.CreateClientInstance(_appState.preferences.clientSelection, _appState.preferences.torrentClientConfig);
             
                 _appState.torrentClient.ConnectToClient().Wait();
                 if (token.IsCancellationRequested)
@@ -140,7 +140,7 @@ namespace TOFF.UI.Pages
         private void GetAndProcessClientData(CancellationToken token)
         {
             //get number of files/directories in torrentDirectory
-            int estimatedDirectoryItemCount = Directory.GetFiles(_appState.torrentDirectory!).Length + Directory.GetDirectories(_appState.torrentDirectory!).Length;
+            int estimatedDirectoryItemCount = Directory.GetFiles(_appState.preferences.torrentDirectory!).Length + Directory.GetDirectories(_appState.preferences.torrentDirectory!).Length;
 
             //get number of torrents in Client
             TorrentDetails[] details = _appState.torrentClient.GetTorrentDetails().Result;
@@ -161,7 +161,7 @@ namespace TOFF.UI.Pages
                     return;
                 }
 
-                if (_appState.IgnoreDirectories.Any(e => e == needed.SavePath))
+                if (_appState.preferences.IgnoreDirectories.Any(e => e == needed.SavePath))
                 {
                     continue;
                 }
@@ -194,7 +194,7 @@ namespace TOFF.UI.Pages
             });
 
             //walk through torrentDirectory
-            var missing = from f in Directory.EnumerateFiles(_appState.torrentDirectory!, "*", SearchOption.AllDirectories)
+            var missing = from f in Directory.EnumerateFiles(_appState.preferences.torrentDirectory!, "*", SearchOption.AllDirectories)
                           where !allTorrentFiles.Any(e => e.qualifiedPath == f)
                           select f;
       
@@ -224,7 +224,7 @@ namespace TOFF.UI.Pages
 
         private string TranslatePath(string path)
         {
-            foreach (var item in _appState.PathTranslations)
+            foreach (var item in _appState.preferences.PathTranslations)
             {
                 if (path.StartsWith(item.Key))
                 {

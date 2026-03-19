@@ -50,7 +50,7 @@ namespace TOFF.UI.Pages
 
             table.Style.ColumnStyles[0] = new ColumnStyle
             {
-                RepresentationGetter = (value) => value.ToString().Remove(0, _appState.torrentDirectory.Length),
+                RepresentationGetter = (value) => value.ToString().Remove(0, _appState.preferences.torrentDirectory!.Length),
 
                 Alignment = Alignment.Fill,
             };

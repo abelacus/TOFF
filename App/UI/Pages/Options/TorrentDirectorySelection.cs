@@ -25,14 +25,14 @@ namespace TOFF.UI.Pages.Options
                 MustExist = true,
             };
 
-            if(appState.torrentDirectory != null)
+            if(appState.preferences.torrentDirectory != null)
             {
-                directorySelector.Path = appState.torrentDirectory;
+                directorySelector.Path = appState.preferences.torrentDirectory;
             }
 
             directorySelector.FilesSelected += (_, ev) =>
             {
-                appState.torrentDirectory = ev.Dialog.Path;
+                appState.preferences.torrentDirectory = ev.Dialog.Path;
             };
 
             _popupWindow = directorySelector;
