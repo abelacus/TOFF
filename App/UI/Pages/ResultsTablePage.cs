@@ -50,7 +50,7 @@ namespace TOFF.UI.Pages
 
             table.Style.ColumnStyles[0] = new ColumnStyle
             {
-                RepresentationGetter = (value) => value.ToString().Remove(0, _appState.preferences.torrentDirectory!.Length),
+                RepresentationGetter = (value) => value.ToString().Remove(0, _appState.Preferences.TorrentDirectory!.Length),
 
                 Alignment = Alignment.Fill,
             };
@@ -69,13 +69,13 @@ namespace TOFF.UI.Pages
             };
             
 
-            table.Table = new EnumerableTableSource<FileInformation>(_appState.filesMissingFromClient,
+            table.Table = new EnumerableTableSource<FileInformation>(_appState.FilesMissingFromClient,
                     new Dictionary<string, Func<FileInformation, object>>()
                     {
-                        { "File Path", (p) => p.savePath },
-                        { "Links", (p) => p.links },
-                        { "Creation Date", (p) => p.creationDate.ToShortDateString() },
-                        { "Last Modified Date", (p) => p.lastModifiedDate.ToShortDateString() },
+                        { "File Path", (p) => p.SavePath },
+                        { "Links", (p) => p.Links },
+                        { "Creation Date", (p) => p.CreationDate.ToShortDateString() },
+                        { "Last Modified Date", (p) => p.LastModifiedDate.ToShortDateString() },
                     }
                 );
 
@@ -117,7 +117,7 @@ namespace TOFF.UI.Pages
             // include 'select' button to mark file for deletion alongside 'ok' to close popup.
             table.CellActivated += (_, e) =>
             {
-                FileInformation fileInfo = _appState.filesMissingFromClient[e.Row];
+                FileInformation fileInfo = _appState.FilesMissingFromClient[e.Row];
 
                 Scheme textViewScheme = new Scheme()
                 {
@@ -144,12 +144,12 @@ namespace TOFF.UI.Pages
 
                 TextView nameValue = new TextView()
                 {
-                    Text = fileInfo.savePath,
+                    Text = fileInfo.SavePath,
                     X = Pos.Right(nameLabel) + 1,
                     Y = 0,
                     Width = Dim.Fill(),
                     Height = Dim.Func((v) => { //This should probably be improved. Dim.Auto doesn't work as expected, leaves excess lines or uses a height of 0
-                        return (int)Math.Ceiling((decimal)fileInfo.savePath.Length / (decimal)(this.Frame.Width * 0.65 - 19));
+                        return (int)Math.Ceiling((decimal)fileInfo.SavePath.Length / (decimal)(this.Frame.Width * 0.65 - 19));
                     }),
                     CanFocus = false,
                     WordWrap = true,
@@ -167,10 +167,10 @@ namespace TOFF.UI.Pages
 
                 TextView linksValue = new TextView()
                 {
-                    Text = fileInfo.links.ToString(),
+                    Text = fileInfo.Links.ToString(),
                     X = Pos.Right(linksLabel) + 1,
                     Y = linksLabel.Y,
-                    Width = fileInfo.links.ToString().Length,
+                    Width = fileInfo.Links.ToString().Length,
                     Height = 1,
                     CanFocus = false,
                     WordWrap = true,
@@ -187,10 +187,10 @@ namespace TOFF.UI.Pages
 
                 TextView creationDateValue = new TextView()
                 {
-                    Text = fileInfo.creationDate.ToString("yyyy-MM-dd"),
+                    Text = fileInfo.CreationDate.ToString("yyyy-MM-dd"),
                     X = Pos.Right(creationDateLabel) + 1,
                     Y = creationDateLabel.Y,
-                    Width = fileInfo.creationDate.ToString("yyyy-MM-dd").Length,
+                    Width = fileInfo.CreationDate.ToString("yyyy-MM-dd").Length,
                     Height = 1,
                     CanFocus = false,
                     WordWrap = true,
@@ -207,10 +207,10 @@ namespace TOFF.UI.Pages
 
                 TextView modifiedDateValue = new TextView()
                 {
-                    Text = fileInfo.lastModifiedDate.ToString("yyyy-MM-dd"),
+                    Text = fileInfo.LastModifiedDate.ToString("yyyy-MM-dd"),
                     X = Pos.Right(modifiedDateLabel) + 1,
                     Y = modifiedDateLabel.Y,
-                    Width = fileInfo.lastModifiedDate.ToString("yyyy-MM-dd").Length,
+                    Width = fileInfo.LastModifiedDate.ToString("yyyy-MM-dd").Length,
                     Height = 1,
                     CanFocus = false,
                     WordWrap = true,
@@ -311,7 +311,7 @@ namespace TOFF.UI.Pages
 
             int[] indexes = table.MultiSelectedRegions.Select(e => e.Origin.Y).ToArray();
 
-            _appState.toBeDeleted = indexes.Select(i => _appState.filesMissingFromClient[i]).ToArray();
+            _appState.ToBeDeleted = indexes.Select(i => _appState.FilesMissingFromClient[i]).ToArray();
 
             _navigationService.NavigateTo<DeletionPage>(false);
         }

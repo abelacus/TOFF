@@ -12,9 +12,9 @@ namespace TOFF.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private Runnable _top;
-        private IApplication application;
+        private IApplication _application;
 
-        private List<(Type pageType, bool isBackable)> windowStack = new List<(Type pageType, bool isBackable)>();
+        private List<(Type pageType, bool isBackable)> _windowStack = new List<(Type pageType, bool isBackable)>();
 
         public NavigationService(IServiceProvider serviceProvider)
         {
@@ -33,7 +33,7 @@ namespace TOFF.Services
         public void Init<T>() where T : View
         { 
             using IApplication app = Application.Create().Init(DriverRegistry.Names.DOTNET);
-            application = app;
+            _application = app;
             _top = new Runnable();
             app.Mouse.IsMouseDisabled = true;
 
@@ -52,32 +52,32 @@ namespace TOFF.Services
         {
 
             //we have instances where this is called from an external thread so use invoke instead
-            application.Invoke(() =>
+            _application.Invoke(() =>
             {
-                application.Run(view);
+                _application.Run(view);
             });
 
             return view.Result ?? -1;
         }
 
-        public void NavigateTo<T>(bool Backable = true) where T : View
+        public void NavigateTo<T>(bool backable = true) where T : View
         {
-            NavigateTo(typeof(T), Backable);
+            NavigateTo(typeof(T), backable);
         }
 
-        public void NavigateTo(Type nav, bool Backable = true)
+        public void NavigateTo(Type nav, bool backable = true)
         {
-            application.Invoke(() =>
+            _application.Invoke(() =>
             {
                 if (typeof(IPopup).IsAssignableFrom(nav))
                 {
                     var popup = (IPopup)_serviceProvider.GetRequiredService(nav);
 
-                    RunDialog(popup.popupWindow);
+                    RunDialog(popup.PopupWindow);
                 }
                 else
                 {
-                    windowStack.Add((nav, Backable));
+                    _windowStack.Add((nav, backable));
                     _top.RemoveAll();
                     var page = (View)_serviceProvider.GetRequiredService(nav);
                     _top.Add(page);
@@ -87,23 +87,23 @@ namespace TOFF.Services
 
         public void NavigateBack()
         {
-            application.Invoke(() =>
+            _application.Invoke(() =>
             {
-                Debug.WriteLine(windowStack.Count());
-                if (windowStack.Count() <= 1)
+                Debug.WriteLine(_windowStack.Count());
+                if (_windowStack.Count() <= 1)
                 {
                     _top.RequestStop();
                     return;
                 }
-                windowStack.RemoveAt(windowStack.Count - 1);
+                _windowStack.RemoveAt(_windowStack.Count - 1);
 
-                while (windowStack.Count > 0 && !windowStack[^1].isBackable)
+                while (_windowStack.Count > 0 && !_windowStack[^1].isBackable)
                 {
-                    windowStack.RemoveAt(windowStack.Count - 1);
+                    _windowStack.RemoveAt(_windowStack.Count - 1);
                 }
 
                 _top.RemoveAll();
-                var page = (View)_serviceProvider.GetRequiredService(windowStack[^1].pageType);
+                var page = (View)_serviceProvider.GetRequiredService(_windowStack[^1].pageType);
                 _top.Add(page);
             });
         }

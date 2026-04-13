@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using TorrentClient.Attributes;
 using TorrentClient.Clients.Deluge.Models;
 using TorrentClient.Models;
@@ -17,77 +9,84 @@ namespace TorrentClient.Clients.Deluge
     [ClientName("Deluge")]
     internal class DelugeClient : TorrentClientBase
     {
-        private HttpClient _httpClient;
-        private CookieContainer _cookieContainer;
-        private HttpClientHandler _httpClientHandler;
-        private bool isLoggedIn = false;
-        private int index = 0;
+        private readonly HttpClient _httpClient;
+        private bool _isLoggedIn = false;
+        private int _index = 0;
 
         public DelugeClient(TorrentClientConfig clientConfig) : base(clientConfig)
         {
-            _cookieContainer = new CookieContainer();
-            _httpClientHandler = new HttpClientHandler() { CookieContainer = _cookieContainer };
+            var cookieContainer = new CookieContainer();
+            var httpClientHandler = new HttpClientHandler() { CookieContainer = cookieContainer };
 
-            string apiUrl = clientConfig.ApiURL;
+            string apiUrl = clientConfig.ApiUrl;
             if (!apiUrl.StartsWith("http"))
             {
                 apiUrl = "http://" + apiUrl;
             }
 
-            _httpClient = new HttpClient(_httpClientHandler) { BaseAddress = new Uri(apiUrl) };
+            _httpClient = new HttpClient(httpClientHandler) { BaseAddress = new Uri(apiUrl) };
         }
 
         public override async Task ConnectToClient()
         {
             var loginRequest = new RequestBase<string>
             {
-                Id = index++,
+                Id = _index++,
                 Method = "auth.login",
-                Params = new List<string>() { _clientConfig.Password }
+                Params = [ClientConfig.Password ?? string.Empty]
             };
 
-            using HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/json", loginRequest, RequestBaseContext.Default.RequestBaseString);
+            using var response = await _httpClient.PostAsJsonAsync("/json", loginRequest, RequestBaseContext.Default.RequestBaseString);
 
-            ResponseBase<bool> rawData = await response.Content.ReadFromJsonAsync(ResponseBaseContext.Default.ResponseBaseBoolean);
+            response.EnsureSuccessStatusCode();
+            
+            ResponseBase<bool>? rawData = await response.Content.ReadFromJsonAsync(ResponseBaseContext.Default.ResponseBaseBoolean);
 
-            if (rawData.Error != null || !rawData.Result)
+            if (rawData == null || rawData.Error != null || !rawData.Result)
             {
                 throw new Exception("Unable to login");
             }
 
-            isLoggedIn = rawData.Result;
+            _isLoggedIn = rawData.Result;
         }
 
         public override async Task<FileDetails[]> GetFilesForTorrent(TorrentDetails torrentDetails)
         {
-            if (!isLoggedIn)
+            if (!_isLoggedIn)
             {
-                ConnectToClient();
+                await ConnectToClient();
             }
 
             var fileRequest = new RequestBase<string>
             {
-                Id = index++,
+                Id = _index++,
                 Method = "web.get_torrent_files",
-                Params = new List<string>() { torrentDetails.Hash }
+                Params = [torrentDetails.Hash]
             };
 
             var response = await _httpClient.PostAsJsonAsync("/json", fileRequest, RequestBaseContext.Default.RequestBaseString);
 
-            ResponseBase<TorrentFileDetails> rawData = await response.Content.ReadFromJsonAsync(ResponseBaseContext.Default.ResponseBaseTorrentFileDetails);
+            response.EnsureSuccessStatusCode();
+            
+            ResponseBase<TorrentFileDetails>? rawData = await response.Content.ReadFromJsonAsync(ResponseBaseContext.Default.ResponseBaseTorrentFileDetails);
 
+            if (rawData == null)
+            {
+                throw new Exception("GetFiles request returned empty value");
+            }
+            
             if(rawData.Error != null)
             {
                 throw new Exception(rawData.Error.message);
             }
 
             //actually hate this, stupid barely documented api
-            List<FileDetails> files = getFilesRecursive(rawData.Result, torrentDetails.SavePath);
+            List<FileDetails> files = GetFilesRecursive(rawData.Result, torrentDetails.SavePath);
 
             return files.ToArray();
         }
 
-        private List<FileDetails> getFilesRecursive(TorrentFileDetails details, string? basePath)
+        private List<FileDetails> GetFilesRecursive(TorrentFileDetails details, string basePath)
         {
             List<FileDetails> files = new List<FileDetails>();
 
@@ -95,13 +94,11 @@ namespace TorrentClient.Clients.Deluge
             {
                 if(item.Value.type == "dir")
                 {
-                    files.AddRange(getFilesRecursive(item.Value, basePath));
+                    files.AddRange(GetFilesRecursive(item.Value, basePath));
                     continue;
                 }
-                else
-                {
-                    files.Add(new FileDetails { fileName = item.Key, priority = (int)item.Value.priority, savePath = Path.Join(basePath, details.path ?? "") });
-                }
+
+                files.Add(new FileDetails { FileName = item.Key, Priority = item.Value.priority ?? 1, SavePath = Path.Join(basePath, details.path ?? "") });
             }
 
             return files;
@@ -110,30 +107,36 @@ namespace TorrentClient.Clients.Deluge
 
         public override async Task<TorrentDetails[]> GetTorrentDetails()
         {
-            if (!isLoggedIn)
+            if (!_isLoggedIn)
             {
-                ConnectToClient();
+                await ConnectToClient();
             }
 
             var torrentsRequest = new RequestBase<List<string>>
             {
-                Id = index++,
+                Id = _index++,
                 Method = "core.get_torrents_status",
-                Params = [new List<string>(){}, new List<string>() { //method expects an entry with two arrays, second of which contains the fields we want, first can be empty
-                    "name",
-                    "state",
-                    "progress",
-                    "download_location",
-                    "hash",
-                }]
+                Params = [new List<string>(){}, [
+                        "name",
+                        "state",
+                        "progress",
+                        "download_location",
+                        "hash"
+                    ]
+                ]
             };
 
             var response = await _httpClient.PostAsJsonAsync("/json", torrentsRequest, RequestBaseContext.Default.RequestBaseListString);
 
             response.EnsureSuccessStatusCode();
 
-            ResponseBase<Dictionary<string,TorrentInfo>> rawData = await response.Content.ReadFromJsonAsync(ResponseBaseContext.Default.ResponseBaseDictionaryStringTorrentInfo);
+            ResponseBase<Dictionary<string, TorrentInfo>>? rawData = await response.Content.ReadFromJsonAsync(ResponseBaseContext.Default.ResponseBaseDictionaryStringTorrentInfo);
 
+            if (rawData == null)
+            {
+                throw new Exception("Get Torrent Details request returned empty value");
+            }
+            
             if (rawData.Error != null)
             {
                 throw new Exception(rawData.Error.message);

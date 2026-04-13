@@ -1,11 +1,7 @@
-﻿using Microsoft.Win32.SafeHandles;
-using System;
-using System.Collections.Generic;
+﻿using System.Diagnostics;
+using Microsoft.Win32.SafeHandles;
 using System.Runtime.InteropServices;
-using System.Text;
 using TOFF.Models;
-using TorrentClient.Models;
-using static Terminal.Gui.Drivers.WindowsConsole;
 
 namespace TOFF.Services.FileInfoHandlers
 {
@@ -55,11 +51,11 @@ namespace TOFF.Services.FileInfoHandlers
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool GetFileInformationByHandle(SafeFileHandle hFile, out BY_HANDLE_FILE_INFORMATION FileInformation);
 
-        private static bool CanGetByName = true;
+        private static bool _canGetByName = true;
 
         public FileInformation GetFileInfo(string filePath)
         {
-            if (CanGetByName)
+            if (_canGetByName)
             {
                 try //almost certainly a better way to handle this but this is fine for now i guess.
                 {
@@ -67,15 +63,17 @@ namespace TOFF.Services.FileInfoHandlers
 
                     return new FileInformation
                     {
-                        savePath = filePath,
-                        creationDate = new DateTime((int)info.CreationTime),
-                        lastModifiedDate = new DateTime((int)info.ChangeTime),
-                        links = info.NumberOfLinks,
+                        SavePath = filePath,
+                        CreationDate = new DateTime((int)info.CreationTime),
+                        LastModifiedDate = new DateTime((int)info.ChangeTime),
+                        Links = info.NumberOfLinks,
                     };
                 }
                 catch (Exception e) //will fail on windows 10 and earlier so need an alternative
                 {
-                    CanGetByName = false;
+                    Debug.WriteLine("Failed to get by name, trying again with handles");
+                    
+                    _canGetByName = false;
                     SafeFileHandle handle = File.OpenHandle(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, FileOptions.None);
 
                     GetFileInformationByHandle(handle, out var info);
@@ -84,10 +82,10 @@ namespace TOFF.Services.FileInfoHandlers
 
                     return new FileInformation
                     {
-                        savePath = filePath,
-                        creationDate = DateTime.FromFileTime((((long)info.ftCreationTime.dwHighDateTime) << 32) | ((uint)info.ftCreationTime.dwLowDateTime)),
-                        lastModifiedDate = DateTime.FromFileTime((((long)info.ftLastWriteTime.dwHighDateTime) << 32) | ((uint)info.ftLastWriteTime.dwLowDateTime)),
-                        links = info.nNumberOfLinks
+                        SavePath = filePath,
+                        CreationDate = DateTime.FromFileTime((((long)info.ftCreationTime.dwHighDateTime) << 32) | ((uint)info.ftCreationTime.dwLowDateTime)),
+                        LastModifiedDate = DateTime.FromFileTime((((long)info.ftLastWriteTime.dwHighDateTime) << 32) | ((uint)info.ftLastWriteTime.dwLowDateTime)),
+                        Links = info.nNumberOfLinks
                     };
                 }
             }
@@ -101,10 +99,10 @@ namespace TOFF.Services.FileInfoHandlers
 
                 return new FileInformation
                 {
-                    savePath = filePath,
-                    creationDate = DateTime.FromFileTime((((long)info.ftCreationTime.dwHighDateTime) << 32) | ((uint)info.ftCreationTime.dwLowDateTime)),
-                    lastModifiedDate = DateTime.FromFileTime((((long)info.ftLastWriteTime.dwHighDateTime) << 32) | ((uint)info.ftLastWriteTime.dwLowDateTime)),
-                    links = info.nNumberOfLinks
+                    SavePath = filePath,
+                    CreationDate = DateTime.FromFileTime((((long)info.ftCreationTime.dwHighDateTime) << 32) | ((uint)info.ftCreationTime.dwLowDateTime)),
+                    LastModifiedDate = DateTime.FromFileTime((((long)info.ftLastWriteTime.dwHighDateTime) << 32) | ((uint)info.ftLastWriteTime.dwLowDateTime)),
+                    Links = info.nNumberOfLinks
                 };
             }
 

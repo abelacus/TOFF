@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TorrentClient.Clients.Deluge.Models
+﻿namespace TorrentClient.Clients.Deluge.Models
 {
     internal record TorrentInfo
     {
-        public string name { get; set; }
-        public string state { get; set; }
-        public float progress { get; set; }
-        public string download_location { get; set; }
-        public string hash { get; set; }
+        public required string name { get; set; }
+        public required string state { get; set; }
+        public required float progress { get; set; }
+        public required string download_location { get; set; }
+        public required string hash { get; set; }
     }
 }

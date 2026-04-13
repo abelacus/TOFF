@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using TOFF.Models;
-using TorrentClient.Models;
+﻿using TOFF.Models;
 
 namespace TOFF.Services.FileInfoHandlers
 {

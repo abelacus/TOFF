@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 using TorrentClient;
 using TorrentClient.Attributes;
 using TorrentClient.Models;
@@ -12,7 +7,7 @@ namespace TOFF.Services
 {
     internal class TorrentClientService
     {
-        private Dictionary<string, Type> _clientDictionary = new();
+        private readonly Dictionary<string, Type> _clientDictionary = new();
 
         public TorrentClientService()
         {
@@ -27,7 +22,7 @@ namespace TOFF.Services
             foreach (var type in implementations)
             {
                 var nameAttribute = type.GetCustomAttribute<ClientNameAttribute>();
-                string name = nameAttribute.Name ?? type.Name + " undefined attribute";
+                string name = nameAttribute != null ? nameAttribute.Name : type.Name + " undefined attribute";
 
                 _clientDictionary[name] = type;
             }
@@ -42,7 +37,7 @@ namespace TOFF.Services
         {
             if(_clientDictionary.TryGetValue(clientName, out var type))
             {
-                return Activator.CreateInstance(type, clientConfig) as ITorrentClient;
+                return Activator.CreateInstance(type, clientConfig) as ITorrentClient ?? throw new InvalidOperationException("Torrent client dictionary contains non-client options.");
             }
             throw new ArgumentException(clientName + " is not a defined client");
         }

@@ -26,28 +26,28 @@ namespace TOFF.UI.Pages
                 {
                     Text = "Torrent Client",
                     Tag = typeof(ClientSelection),
-                    DataDataSource = () => [_appState.preferences.clientSelection],
+                    DataDataSource = () => [_appState.Preferences.ClientSelection],
                 },
                 new DataSourceTreeNode
                 {
                     Text = "Client Configuration",
                     Tag = typeof(ClientConfiguration),
-                    DataDataSource = () => _appState.preferences.torrentClientConfig.ToDetailsArray() ?? ["Not Configured"]
+                    DataDataSource = () => _appState.Preferences.TorrentClientConfig.ToDetailsArray() ?? ["Not Configured"]
                 },
                 new DataSourceTreeNode {
                     Text = "Torrent Directory",
                     Tag = typeof(TorrentDirectorySelection),
-                    DataDataSource = () => [_appState.preferences.torrentDirectory ?? "Not Set"]
+                    DataDataSource = () => [_appState.Preferences.TorrentDirectory ?? "Not Set"]
                 },
                 new DataSourceTreeNode {
                     Text = "Directories to ignore",
                     Tag = typeof(IgnoreDirectorySelection),
-                    DataDataSource = () => _appState.preferences.IgnoreDirectories.Length > 0 ? [$"{_appState.preferences.IgnoreDirectories.Length} ignored directories"] : ["No ignored directories"]
+                    DataDataSource = () => _appState.Preferences.IgnoreDirectories.Length > 0 ? [$"{_appState.Preferences.IgnoreDirectories.Length} ignored directories"] : ["No ignored directories"]
                 },
                 new DataSourceTreeNode {
                     Text = "Path Translations",
                     Tag = typeof(PathTranslationConfiguration),
-                    DataDataSource = () => _appState.preferences.PathTranslations.Count > 0 ? [$"{_appState.preferences.PathTranslations.Count} translations"] : ["No path translations"]
+                    DataDataSource = () => _appState.Preferences.PathTranslations.Count > 0 ? [$"{_appState.Preferences.PathTranslations.Count} translations"] : ["No path translations"]
                 },
             };
 
@@ -194,7 +194,7 @@ namespace TOFF.UI.Pages
             errorDialog.SetScheme(new Scheme(new Terminal.Gui.Drawing.Attribute(StandardColor.BrightRed, StandardColor.RaisinBlack)));
 
             //validate current settings
-            if (_appState.preferences.torrentClientConfig.ApiURL == null || _appState.preferences.torrentClientConfig.ApiURL.Length == 0)
+            if (_appState.Preferences.TorrentClientConfig.ApiUrl == null || _appState.Preferences.TorrentClientConfig.ApiUrl.Length == 0)
             {
                 Label errorLabel = new Label()
                 {
@@ -213,7 +213,7 @@ namespace TOFF.UI.Pages
                 //show popup
             }
 
-            if(_appState.preferences.torrentDirectory == null || _appState.preferences.torrentDirectory.Length == 0)
+            if(_appState.Preferences.TorrentDirectory == null || _appState.Preferences.TorrentDirectory.Length == 0)
             {
                 Label errorLabel = new Label()
                 {

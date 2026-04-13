@@ -123,10 +123,10 @@ namespace TOFF.Services.FileInfoHandlers
 
             return new FileInformation
             {
-                savePath = filePath,
-                creationDate = DateTimeOffset.FromUnixTimeSeconds(info.CreationTime.Seconds).DateTime,
-                lastModifiedDate = DateTimeOffset.FromUnixTimeSeconds(info.LastModificationTime.Seconds).DateTime,
-                links = info.HardLinks
+                SavePath = filePath,
+                CreationDate = DateTimeOffset.FromUnixTimeSeconds(info.CreationTime.Seconds).DateTime,
+                LastModifiedDate = DateTimeOffset.FromUnixTimeSeconds(info.LastModificationTime.Seconds).DateTime,
+                Links = info.HardLinks
             };
         }
     }

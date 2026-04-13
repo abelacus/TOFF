@@ -1,8 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using TOFF.Services;
-using Terminal.Gui.App;
-using Terminal.Gui.ViewBase;
-using Terminal.Gui.Views;
+﻿using TOFF.Services;
 using TOFF.UI.Pages;
 using Terminal.Gui.Configuration;
 

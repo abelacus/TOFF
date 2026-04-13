@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Text;
-using Terminal.Gui.Input;
+﻿using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 using TOFF.Services;
@@ -23,7 +19,7 @@ namespace TOFF.UI.Pages.Options
 
             Title = "Select Torrent Client";
 
-            string currentSelection = _appState.preferences.clientSelection;
+            string currentSelection = _appState.Preferences.ClientSelection;
 
             var clientSelection = new OptionSelector()
             {
@@ -39,7 +35,7 @@ namespace TOFF.UI.Pages.Options
 
             clientSelection.ValueChanged += (_, e) =>
             {
-                _appState.preferences.clientSelection = clientSelection.Labels[e.NewValue ?? 0];
+                _appState.Preferences.ClientSelection = clientSelection.Labels[e.NewValue ?? 0];
             };
 
             Add(clientSelection);
@@ -69,9 +65,6 @@ namespace TOFF.UI.Pages.Options
             shortcutBar.Add(backShortcut);
 
             Add(divider, shortcutBar);
-
-
-
         }
 
     }

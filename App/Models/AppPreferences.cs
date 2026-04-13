@@ -4,21 +4,21 @@ namespace TOFF.Models
 {
     internal class AppPreferences
     {
-        public string clientSelection { get; set; }
+        public string ClientSelection { get; set; }
         public string[] IgnoreDirectories { get; set; } = [];
         /// <summary>
-        /// <see cref="TKey"/> is path as it appears in torrent client, <see cref="TValue"> is local path to translate to
+        /// <see cref="TKey"/> is path as it appears in torrent client, <see cref="TValue"/> is local path to translate to
         /// </summary>
         public Dictionary<string, string> PathTranslations { get; set; } = new Dictionary<string, string>();
-        public TorrentClientConfig torrentClientConfig { get; set; }
-        public string? torrentDirectory { get; set; }
+        public TorrentClientConfig TorrentClientConfig { get; set; }
+        public string? TorrentDirectory { get; set; }
 
         public AppPreferences() { }
 
-        public AppPreferences(string _clientSelection, TorrentClientConfig _torrentClientConfig)
+        public AppPreferences(string clientSelection, TorrentClientConfig torrentClientConfig)
         {
-            clientSelection = _clientSelection;
-            torrentClientConfig = _torrentClientConfig;
+            ClientSelection = clientSelection;
+            TorrentClientConfig = torrentClientConfig;
         }
     }
 }

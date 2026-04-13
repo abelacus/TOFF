@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Text;
+﻿using System.Collections.ObjectModel;
 using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
@@ -14,8 +11,8 @@ namespace TOFF.UI.Pages.Options
         private readonly AppStateService _appState;
         private readonly NavigationService _navigationService;
 
-        private ListView ignoreList;
-        private ObservableCollection<string> ignoreListSource;
+        private readonly ListView _ignoreList;
+        private readonly ObservableCollection<string> _ignoreListSource;
 
 
         public IgnoreDirectorySelection(AppStateService appState, NavigationService navigationService)
@@ -24,9 +21,9 @@ namespace TOFF.UI.Pages.Options
             _navigationService = navigationService;
             Title = "Directories To Ignore";
 
-            ignoreListSource = new ObservableCollection<string>(_appState.preferences.IgnoreDirectories);
+            _ignoreListSource = new ObservableCollection<string>(_appState.Preferences.IgnoreDirectories);
 
-            ignoreList = new ListView()
+            _ignoreList = new ListView()
             {
                 X = 0,
                 Y = 0,
@@ -36,24 +33,24 @@ namespace TOFF.UI.Pages.Options
                 Height = Dim.Fill() - 2,
             };
 
-            ignoreList.SetSource(ignoreListSource);
+            _ignoreList.SetSource(_ignoreListSource);
 
-            ignoreList.Accepting += (_, e) =>
+            _ignoreList.Accepting += (_, e) =>
             {
-                if(ignoreList.SelectedItem != null && ignoreList.Source.Count > 0)
+                if(_ignoreList.SelectedItem != null && _ignoreList.Source != null && _ignoreList.Source.Count > 0)
                 {
-                    EditPopup((int)ignoreList.SelectedItem);
+                    EditPopup((int)_ignoreList.SelectedItem);
                 }
                 e.Handled = true;
             };
 
-            Add(ignoreList);
+            Add(_ignoreList);
 
             //shortcut bar
             Line divider = new Line()
             {
                 X = 0,
-                Y = Pos.Bottom(ignoreList),
+                Y = Pos.Bottom(_ignoreList),
                 Length = Dim.Fill(),
                 Orientation = Orientation.Horizontal,
             };
@@ -90,17 +87,17 @@ namespace TOFF.UI.Pages.Options
 
             Add(divider, shortcutBar);
 
-            if(ignoreListSource.Count > 0)
+            if(_ignoreListSource.Count > 0)
             { 
-                ignoreList.SetFocus();
-                ignoreList.SelectedItem = 0;
+                _ignoreList.SetFocus();
+                _ignoreList.SelectedItem = 0;
             }
 
         }
 
         private void SaveAndBack()
         {
-            _appState.preferences.IgnoreDirectories = ignoreListSource.ToArray();
+            _appState.Preferences.IgnoreDirectories = _ignoreListSource.ToArray();
 
             _navigationService.NavigateBack();
         }
@@ -152,22 +149,22 @@ namespace TOFF.UI.Pages.Options
             {
                 if (addNewPopup.Canceled == false)
                 {
-                    ignoreListSource.Add(textField.Text.ToString());
+                    _ignoreListSource.Add(textField.Text);
                 }
             }
 
 
             if (addNewPopup.Result == 1)
             {
-                ignoreListSource.Add(textField.Text.ToString());
+                _ignoreListSource.Add(textField.Text);
             }
 
-            ignoreList.SetFocus();
+            _ignoreList.SetFocus();
         }
 
         private void EditPopup(int index)
         {
-            if(ignoreListSource.Count == 0)
+            if(_ignoreListSource.Count == 0)
             {
                 return;
             }
@@ -191,7 +188,7 @@ namespace TOFF.UI.Pages.Options
 
             var textField = new TextField()
             {
-                Text = ignoreListSource.ElementAt(index),
+                Text = _ignoreListSource.ElementAt(index),
                 X = Pos.Right(label) + 1,
                 Y = 0,
                 Width = Dim.Fill() - 1
@@ -219,19 +216,19 @@ namespace TOFF.UI.Pages.Options
             {
                 if (addNewPopup.Canceled == false)
                 {
-                    ignoreListSource[index] = textField.Text.ToString();
+                    _ignoreListSource[index] = textField.Text;
                 }
             }
             if (addNewPopup.Result == 1)
             {
-                ignoreListSource.RemoveAt(index);
+                _ignoreListSource.RemoveAt(index);
             }
 
             if (addNewPopup.Result == 2)
             {
-                ignoreListSource[index] = textField.Text.ToString();
+                _ignoreListSource[index] = textField.Text;
             }
-            ignoreList.SetFocus();
+            _ignoreList.SetFocus();
         }
 
         private void InformationPopup()

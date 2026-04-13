@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Terminal.Gui.ViewBase;
+﻿using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 using TOFF.Services;
 
@@ -9,10 +6,9 @@ namespace TOFF.UI.Pages.Options
 {
     internal class TorrentDirectorySelection : IPopup
     {
-        private Dialog _popupWindow;
-        public Dialog popupWindow => _popupWindow;
+        public Dialog PopupWindow { get; }
 
-        public TorrentDirectorySelection(AppStateService appState, NavigationService navigation)
+        public TorrentDirectorySelection(AppStateService appState)
         {
             //TODO: figure out why the search/find entry doesn't work.
             var directorySelector = new OpenDialog()
@@ -25,17 +21,17 @@ namespace TOFF.UI.Pages.Options
                 MustExist = true,
             };
 
-            if(appState.preferences.torrentDirectory != null)
+            if(appState.Preferences.TorrentDirectory != null)
             {
-                directorySelector.Path = appState.preferences.torrentDirectory;
+                directorySelector.Path = appState.Preferences.TorrentDirectory;
             }
 
             directorySelector.FilesSelected += (_, ev) =>
             {
-                appState.preferences.torrentDirectory = ev.Dialog.Path;
+                appState.Preferences.TorrentDirectory = ev.Dialog.Path;
             };
 
-            _popupWindow = directorySelector;
+            PopupWindow = directorySelector;
 
         }
 

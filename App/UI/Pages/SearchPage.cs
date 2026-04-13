@@ -85,9 +85,9 @@ namespace TOFF.UI.Pages
         {
             try
             {
-                _appState.torrentClient = _clientService.CreateClientInstance(_appState.preferences.clientSelection, _appState.preferences.torrentClientConfig);
+                _appState.TorrentClient = _clientService.CreateClientInstance(_appState.Preferences.ClientSelection, _appState.Preferences.TorrentClientConfig);
             
-                _appState.torrentClient.ConnectToClient().Wait();
+                _appState.TorrentClient.ConnectToClient().Wait();
                 if (token.IsCancellationRequested)
                 {
                     return false;
@@ -140,10 +140,10 @@ namespace TOFF.UI.Pages
         private void GetAndProcessClientData(CancellationToken token)
         {
             //get number of files/directories in torrentDirectory
-            int estimatedDirectoryItemCount = Directory.GetFiles(_appState.preferences.torrentDirectory!).Length + Directory.GetDirectories(_appState.preferences.torrentDirectory!).Length;
+            int estimatedDirectoryItemCount = Directory.GetFiles(_appState.Preferences.TorrentDirectory!).Length + Directory.GetDirectories(_appState.Preferences.TorrentDirectory!).Length;
 
             //get number of torrents in Client
-            TorrentDetails[] details = _appState.torrentClient.GetTorrentDetails().Result;
+            TorrentDetails[] details = _appState.TorrentClient.GetTorrentDetails().Result;
 
             List<FileDetails> allTorrentFiles = new List<FileDetails>();
 
@@ -161,7 +161,7 @@ namespace TOFF.UI.Pages
                     return;
                 }
 
-                if (_appState.preferences.IgnoreDirectories.Any(e => e == needed.SavePath))
+                if (_appState.Preferences.IgnoreDirectories.Any(e => e == needed.SavePath))
                 {
                     continue;
                 }
@@ -170,14 +170,14 @@ namespace TOFF.UI.Pages
                 //required because e.g. if the torrent client is on windows but the application is on linux, Path.Join will return the working directory + basePath.
                 needed.SavePath = ConvertPathToLocalForm(needed.SavePath);
 
-                FileDetails[] fileDetails = _appState.torrentClient.GetFilesForTorrent(needed).Result;
+                FileDetails[] fileDetails = _appState.TorrentClient.GetFilesForTorrent(needed).Result;
 
                 foreach (FileDetails file in fileDetails)
                 {
                     //priority 0 is 'do not download' so we should be good to ignore them.
-                    if (file.priority != 0)
+                    if (file.Priority != 0)
                     {
-                        file.savePath = TranslatePath(file.savePath);
+                        file.SavePath = TranslatePath(file.SavePath);
                         allTorrentFiles.Add(file);
                     }
                 }
@@ -194,8 +194,8 @@ namespace TOFF.UI.Pages
             });
 
             //walk through torrentDirectory
-            var missing = from f in Directory.EnumerateFiles(_appState.preferences.torrentDirectory!, "*", SearchOption.AllDirectories)
-                          where !allTorrentFiles.Any(e => e.qualifiedPath == f)
+            var missing = from f in Directory.EnumerateFiles(_appState.Preferences.TorrentDirectory!, "*", SearchOption.AllDirectories)
+                          where !allTorrentFiles.Any(e => e.QualifiedPath == f)
                           select f;
       
             List<FileInformation> missingInformation = new List<FileInformation>();
@@ -213,7 +213,7 @@ namespace TOFF.UI.Pages
                 });
             }
 
-            _appState.filesMissingFromClient = missingInformation.ToArray();
+            _appState.FilesMissingFromClient = missingInformation.ToArray();
 
             //once done, display data in a table.
             if (!token.IsCancellationRequested)
@@ -224,7 +224,7 @@ namespace TOFF.UI.Pages
 
         private string TranslatePath(string path)
         {
-            foreach (var item in _appState.preferences.PathTranslations)
+            foreach (var item in _appState.Preferences.PathTranslations)
             {
                 if (path.StartsWith(item.Key))
                 {

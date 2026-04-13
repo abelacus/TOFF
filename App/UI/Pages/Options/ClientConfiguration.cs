@@ -14,21 +14,20 @@ namespace TOFF.UI.Pages.Options
         private readonly AppStateService _appState;
         private readonly NavigationService _navigationService;
 
-        private ConfigItemValue[] configItems;
+        private readonly ConfigItemValue[] _configItems;
         public ClientConfiguration(AppStateService appState, NavigationService navigationService)
         {
             _appState = appState;
             _navigationService = navigationService;
 
-            configItems = new[] {
-                new ConfigItemValue("Client API URL", _appState.preferences.torrentClientConfig.ApiURL ?? "", null),
-                new ConfigItemValue("Requires Authentication", _appState.preferences.torrentClientConfig.HasAuthentication.ToString(), new List<string>{"True", "False"}),
-                new ConfigItemValue("Username", _appState.preferences.torrentClientConfig.Username ?? "", null),
-                new ConfigItemValue("Password", _appState.preferences.torrentClientConfig.Password ?? "", null),
-            };
-
-            ConfigItemValue? currentSelection = null;
-
+            _configItems =
+            [
+                new ConfigItemValue("Client API URL", _appState.Preferences.TorrentClientConfig.ApiUrl, null),
+                new ConfigItemValue("Requires Authentication", _appState.Preferences.TorrentClientConfig.HasAuthentication.ToString(), new List<string>{"True", "False"}),
+                new ConfigItemValue("Username", _appState.Preferences.TorrentClientConfig.Username ?? "", null),
+                new ConfigItemValue("Password", _appState.Preferences.TorrentClientConfig.Password ?? "", null)
+            ];
+            
             Title = "Torrent Client Configuration";
 
             var configList = new ListView()
@@ -41,17 +40,17 @@ namespace TOFF.UI.Pages.Options
                 MarkMultiple = false,
             };
 
-            configList.SetSource(new ObservableCollection<ConfigItemValue>(configItems));
+            configList.SetSource(new ObservableCollection<ConfigItemValue>(_configItems));
 
             configList.Accepting += (_, e) =>
             {
-                if (configList.SelectedItem != null)
+                if (configList.SelectedItem != null && configList.Source != null)
                 {
-                    ConfigItemValue entry = (ConfigItemValue)configList.Source.ToList()[(int)configList.SelectedItem];
+                    ConfigItemValue entry = (ConfigItemValue)configList.Source.ToList()[(int)configList.SelectedItem]!;
 
                     string newVal = EditConfigItem(entry);
 
-                    configItems.First(e => e.Name == entry.Name).Value = newVal;
+                    _configItems.First(i => i.Name == entry.Name).Value = newVal;
 
                 }
                 e.Handled = true;
@@ -104,10 +103,10 @@ namespace TOFF.UI.Pages.Options
 
             errorDialog.SetScheme(new Scheme(new Terminal.Gui.Drawing.Attribute(StandardColor.BrightRed, StandardColor.RaisinBlack)));
 
-            if (bool.Parse(configItems[1].Value))
+            if (bool.Parse(_configItems[1].Value))
             {
                 //create dialog if both aren't set, allow if at least one is.
-                if (configItems[2].Value.Length == 0 && configItems[3].Value.Length == 0)
+                if (_configItems[2].Value.Length == 0 && _configItems[3].Value.Length == 0)
                 {
                     var errorLabel = new Label()
                     {
@@ -123,7 +122,7 @@ namespace TOFF.UI.Pages.Options
                     return;
                 }
             }
-            if (configItems[0].Value.Length == 0)
+            if (_configItems[0].Value.Length == 0)
             {
                 var errorLabel = new Label()
                 {
@@ -142,12 +141,12 @@ namespace TOFF.UI.Pages.Options
 
 
             //update global state and navigate back
-            _appState.preferences.torrentClientConfig = new TorrentClientConfig()
+            _appState.Preferences.TorrentClientConfig = new TorrentClientConfig()
             {
-                ApiURL = configItems[0].Value,
-                HasAuthentication = bool.Parse(configItems[1].Value),
-                Username = configItems[2].Value,
-                Password = configItems[3].Value,
+                ApiUrl = _configItems[0].Value,
+                HasAuthentication = bool.Parse(_configItems[1].Value),
+                Username = _configItems[2].Value,
+                Password = _configItems[3].Value,
             };
 
             _navigationService.NavigateBack();
@@ -155,7 +154,7 @@ namespace TOFF.UI.Pages.Options
 
         private void DiscardAndBack()
         {
-            if (configItems[0].Value.Length == 0 && (_appState.preferences.torrentClientConfig.ApiURL == null || _appState.preferences.torrentClientConfig.ApiURL.Length == 0))//don't let them return if an api url hasn't been set
+            if (_configItems[0].Value.Length == 0 && (_appState.Preferences.TorrentClientConfig.ApiUrl == null || _appState.Preferences.TorrentClientConfig.ApiUrl.Length == 0))//don't let them return if an api url hasn't been set
             {
                 var errorDialog = new Dialog()
                 {
@@ -181,8 +180,8 @@ namespace TOFF.UI.Pages.Options
                 return;
             }
 
-            if(_appState.preferences.torrentClientConfig.ApiURL == null || _appState.preferences.torrentClientConfig.ApiURL.Length == 0) {
-                _appState.preferences.torrentClientConfig.ApiURL = configItems[0].Value;
+            if(_appState.Preferences.TorrentClientConfig.ApiUrl == null || _appState.Preferences.TorrentClientConfig.ApiUrl.Length == 0) {
+                _appState.Preferences.TorrentClientConfig.ApiUrl = _configItems[0].Value;
             }
 
             _navigationService.NavigateBack();
@@ -278,14 +277,11 @@ namespace TOFF.UI.Pages.Options
 
             if(editDialogue.Result == null)
             {
-                if(editDialogue.Canceled == true)
+                if(editDialogue.Canceled)
                 { 
                     return item.Value;
                 }
-                if(editDialogue.Canceled == false)
-                {
-                    return result;
-                }
+                return result;
             }
 
 

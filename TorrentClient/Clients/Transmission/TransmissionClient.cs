@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Transmission.API.RPC;
+﻿using Transmission.API.RPC;
 using TorrentClient.Models;
 using Transmission.API.RPC.Entity;
 using Transmission.API.RPC.Params;
 using TorrentClient.Attributes;
-
 
 namespace TorrentClient.Clients.Transmission
 {
@@ -22,16 +18,16 @@ namespace TorrentClient.Clients.Transmission
 
         public TransmissionClient(TorrentClientConfig clientConfig) : base(clientConfig)
         {
-            if (!clientConfig.ApiURL.StartsWith("http")) //requests fail if method isn't included
+            if (!clientConfig.ApiUrl.StartsWith("http")) //requests fail if method isn't included
             {
-                clientConfig.ApiURL = "http://" + clientConfig.ApiURL;
+                clientConfig.ApiUrl = "http://" + clientConfig.ApiUrl;
             }
-            if (!clientConfig.ApiURL.EndsWith("/transmission/rpc")) //transmission library doesn't add this automatically if missing
+            if (!clientConfig.ApiUrl.EndsWith("/transmission/rpc")) //transmission library doesn't add this automatically if missing
             {
-                clientConfig.ApiURL = clientConfig.ApiURL + (clientConfig.ApiURL.EndsWith("/") ? "tramsission/rpc" : "/transmission/rpc");
+                clientConfig.ApiUrl += (clientConfig.ApiUrl.EndsWith("/") ? "tramsission/rpc" : "/transmission/rpc");
             }
 
-            _client = new (clientConfig.ApiURL, _sessionId, clientConfig.Username, clientConfig.Password);
+            _client = new (clientConfig.ApiUrl, _sessionId, clientConfig.Username, clientConfig.Password);
 
             _sessionId = _client.GetSessionInformationAsync().Result.SessionId;
 
@@ -58,7 +54,7 @@ namespace TorrentClient.Clients.Transmission
 
             foreach (var item in response.Torrents[0].Files)
             {
-                files.Add(new() { fileName = item.Name, priority = response.Torrents[0].Wanted[i] ? 1 : 0, savePath = torrentDetails.SavePath });
+                files.Add(new() { FileName = item.Name, Priority = response.Torrents[0].Wanted[i] ? 1 : 0, SavePath = torrentDetails.SavePath });
                 i++;
             }
 

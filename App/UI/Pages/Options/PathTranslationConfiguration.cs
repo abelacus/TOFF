@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using Terminal.Gui.Configuration;
+﻿using System.Collections.ObjectModel;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
@@ -16,8 +13,8 @@ namespace TOFF.UI.Pages.Options
         private readonly NavigationService _navigationService;
         private readonly AppStateService _appState;
 
-        private Dictionary<string, string> translations;
-        private ObservableCollection<KeyValueListItem> translationListSource;
+        private readonly Dictionary<string, string> _translations;
+        private readonly ObservableCollection<KeyValueListItem> _translationListSource;
 
         public PathTranslationConfiguration(AppStateService appState, NavigationService navigationService)
         {
@@ -26,7 +23,7 @@ namespace TOFF.UI.Pages.Options
 
             Title = "Path Translations";
 
-            translations = _appState.preferences.PathTranslations;
+            _translations = _appState.Preferences.PathTranslations;
 
             ListView translationList = new ListView()
             {
@@ -37,13 +34,13 @@ namespace TOFF.UI.Pages.Options
                 ShowMarks = false,
             };
 
-            translationListSource = new ObservableCollection<KeyValueListItem>(translations.Select(e => new KeyValueListItem(e)));
+            _translationListSource = new ObservableCollection<KeyValueListItem>(_translations.Select(e => new KeyValueListItem(e)));
 
-            translationList.SetSource(translationListSource);
+            translationList.SetSource(_translationListSource);
 
             translationList.Accepting += (_, e) =>
             {
-                if(translationList.SelectedItem != null && translationListSource.Count > 0)
+                if(translationList.SelectedItem != null && _translationListSource.Count > 0)
                 {
                     UpdateTranslation((int)translationList.SelectedItem);
                 }
@@ -255,7 +252,7 @@ namespace TOFF.UI.Pages.Options
                     return;
                 }
 
-                if (translations.ContainsKey(clientPath.Text))
+                if (_translations.ContainsKey(clientPath.Text))
                 { 
                     Dialog errorDialog = new Dialog()
                     {
@@ -280,7 +277,7 @@ namespace TOFF.UI.Pages.Options
                     errorLabel.VerticalScrollBar.Visible = false;
                     _navigationService.RunDialog(errorDialog);
 
-                    if(errorDialog.Canceled == true || errorDialog.Result == 0)
+                    if(errorDialog.Canceled || errorDialog.Result == 0)
                     {
                         e.Handled = true;
                     }
@@ -296,7 +293,7 @@ namespace TOFF.UI.Pages.Options
             
             if(translationWizard.Result == 1)
             {
-                translations[clientPath.Text] = localPath.Text;
+                _translations[clientPath.Text] = localPath.Text;
                 UpdateListView();
             }
 
@@ -304,24 +301,24 @@ namespace TOFF.UI.Pages.Options
 
         private void UpdateListView()
         {
-            foreach(var entry in translations)
+            foreach(var entry in _translations)
             {
-                if(translationListSource.Any(e => e.Key == entry.Key))
+                if(_translationListSource.Any(e => e.Key == entry.Key))
                 {
-                    translationListSource[translationListSource.IndexOf(translationListSource.First(e => e.Key == entry.Key))].Value = entry.Value;
+                    _translationListSource[_translationListSource.IndexOf(_translationListSource.First(e => e.Key == entry.Key))].Value = entry.Value;
                 }
                 else
                 {
-                    translationListSource.Add(new KeyValueListItem(entry));
+                    _translationListSource.Add(new KeyValueListItem(entry));
                 }
             }
 
             //remove entries no longer present
-            foreach(var entry in translationListSource.ToList())
+            foreach(var entry in _translationListSource.ToList())
             {
-                if (!translations.ContainsKey(entry.Key))
+                if (!_translations.ContainsKey(entry.Key))
                 {
-                    translationListSource.Remove(entry);
+                    _translationListSource.Remove(entry);
                 }
             }
         }
@@ -329,7 +326,7 @@ namespace TOFF.UI.Pages.Options
 
         private void SaveAndBack()
         {
-            _appState.preferences.PathTranslations = translations;
+            _appState.Preferences.PathTranslations = _translations;
 
             _navigationService.NavigateBack();
         }
@@ -382,7 +379,7 @@ namespace TOFF.UI.Pages.Options
                 X = 0,
                 Y = Pos.Bottom(clientPathLabel),
                 Width = Dim.Fill(),
-                Text = translationListSource[i].Key,
+                Text = _translationListSource[i].Key,
             };
 
             Label localPathLabel = new Label()
@@ -397,7 +394,7 @@ namespace TOFF.UI.Pages.Options
                 X = 0,
                 Y = Pos.Bottom(localPathLabel),
                 Width = Dim.Fill(),
-                Text = translationListSource[i].Value,
+                Text = _translationListSource[i].Value,
             };
 
             Button directorySelectButton = new Button()
@@ -500,7 +497,6 @@ namespace TOFF.UI.Pages.Options
                     _navigationService.RunDialog(errorDialog);
 
                     e.Handled = true;
-                    return;
                 }
             };
 
@@ -510,18 +506,18 @@ namespace TOFF.UI.Pages.Options
             //delete button
             if(updateWizard.Result == 1)
             {
-                translations.Remove(translationListSource[i].Key);
+                _translations.Remove(_translationListSource[i].Key);
                 UpdateListView();
             }
 
             //update button
             if (updateWizard.Result == 2)
             {
-                if (translationListSource[i].Key != clientPath.Text)
+                if (_translationListSource[i].Key != clientPath.Text)
                 {
-                    translations.Remove(translationListSource[i].Key);
+                    _translations.Remove(_translationListSource[i].Key);
                 }
-                translations[clientPath.Text] = localPath.Text;
+                _translations[clientPath.Text] = localPath.Text;
                 UpdateListView();
             }
         }

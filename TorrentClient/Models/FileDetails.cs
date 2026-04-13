@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
 
 namespace TorrentClient.Models
 {
     public class FileDetails
     {
-        public string fileName { get; set
+        public required string FileName { get; set
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
@@ -24,17 +19,17 @@ namespace TorrentClient.Models
         /// <summary>
         /// the directory of the file. this should not have a trailing '/'
         /// </summary>
-        public string savePath { get; set {
+        public required string SavePath { get; set {
                 field = Path.GetFullPath(value); //base path should already be provided fully qualified, we just want to convert to the OS form first.
             }
         }
         /// <summary>
-        /// Returns the full path, generated from <see cref="savePath"/> and <see cref="fileName"/>
+        /// Returns the full path, generated from <see cref="SavePath"/> and <see cref="FileName"/>
         /// </summary>
-        public string qualifiedPath { get {
-                return Path.Join(savePath, fileName);
+        public string QualifiedPath { get {
+                return Path.Join(SavePath, FileName);
             }
         }
-        public int priority { get; set; }
+        public int Priority { get; set; }
     }
 }

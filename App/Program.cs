@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using Terminal.Gui.App;
 using TOFF.UI;
 
 namespace TOFF
@@ -11,8 +10,6 @@ namespace TOFF
     {
         static void Main(string[] args)
         {
-
-
             var host = Host.CreateDefaultBuilder(args).ConfigureServices((context, services) =>
             {
                 services.AddSingleton<TorrentClientService>();
@@ -37,8 +34,6 @@ namespace TOFF
             .Build();
 
             host.Services.GetRequiredService<App>().Run();
-
-
         }
     }
 }

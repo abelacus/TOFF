@@ -1,10 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using TOFF.Models;
 using TorrentClient;
 using TorrentClient.Models;
@@ -13,26 +8,26 @@ namespace TOFF.Services
 {
     internal class AppStateService
     {
-        public ITorrentClient? torrentClient;
-        public FileInformation[] filesMissingFromClient = Array.Empty<FileInformation>();
-        public FileInformation[] toBeDeleted = Array.Empty<FileInformation>();
-        public AppPreferences preferences;
+        public ITorrentClient? TorrentClient;
+        public FileInformation[] FilesMissingFromClient = Array.Empty<FileInformation>();
+        public FileInformation[] ToBeDeleted = Array.Empty<FileInformation>();
+        public AppPreferences Preferences;
 
-        private readonly string configFileName = "settings.json";
+        private readonly string _configFileName = "settings.json";
 
         public AppStateService(TorrentClientService clientService)
         {
-            var builder = new ConfigurationBuilder().AddJsonFile(configFileName, optional: true, reloadOnChange: false).Build();
+            var builder = new ConfigurationBuilder().AddJsonFile(_configFileName, optional: true, reloadOnChange: false).Build();
 
-            preferences = builder.Get<AppPreferences>() ?? new AppPreferences(clientService.GetTorrentClients()[0], new TorrentClientConfig());
+            Preferences = builder.Get<AppPreferences>() ?? new AppPreferences(clientService.GetTorrentClients()[0], new TorrentClientConfig());
 
-            if(preferences.torrentClientConfig == null)
+            if(Preferences.TorrentClientConfig == null)
             {
-                preferences.torrentClientConfig = new TorrentClientConfig();
+                Preferences.TorrentClientConfig = new TorrentClientConfig();
             }
-            if (!clientService.GetTorrentClients().Contains(preferences.clientSelection))
+            if (!clientService.GetTorrentClients().Contains(Preferences.ClientSelection))
             {
-                preferences.clientSelection = clientService.GetTorrentClients()[0];
+                Preferences.ClientSelection = clientService.GetTorrentClients()[0];
             }
 
             SavePreferences();
@@ -45,9 +40,9 @@ namespace TOFF.Services
                 TypeInfoResolver = SourceGenerationContext.Default
             };
 
-            var json = JsonSerializer.Serialize(preferences, sourceGenOptions);
+            var json = JsonSerializer.Serialize(Preferences, sourceGenOptions);
 
-            File.WriteAllText(configFileName, json);
+            File.WriteAllText(_configFileName, json);
         }
 
     }

@@ -1,21 +1,16 @@
-﻿
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using TOFF.Models;
 using TOFF.Services.FileInfoHandlers;
 
 namespace TOFF.Services
 {
-    
-    //linux/mac/unix specific
-
-
     /// <summary>
     /// responsible for containing platform specific code for getting file info, primarily needed because we want to know the number of hardlinks.
     /// </summary>
     internal static class FileInfoService
     {
-        static bool IsWindows => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-        static IFileInfoHandler FileInfoHandler => IsWindows ? new FileInfoWindows() : new FileInfoUnix();
+        private static bool IsWindows => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        private static IFileInfoHandler FileInfoHandler => IsWindows ? new FileInfoWindows() : new FileInfoUnix();
         /// <summary>
         /// returns information about the requested file including size, creation date, modification date, and number of hard links
         /// </summary>

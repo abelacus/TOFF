@@ -44,19 +44,19 @@ namespace TOFF.UI.Pages
             Task.Run(() =>
             {
                 Thread.CurrentThread.IsBackground = true;
-                foreach (var item in _appState.toBeDeleted)
+                foreach (var item in _appState.ToBeDeleted)
                 {
                     App.Invoke(() =>
                     {
-                        current.Text = "Deleting: " + item.savePath;
+                        current.Text = "Deleting: " + item.SavePath;
                     });
                     //Thread.Sleep(2000);
-                    File.Delete(item.savePath);
+                    File.Delete(item.SavePath);
                 }
 
                 //reset to nothing just in case
-                _appState.toBeDeleted = Array.Empty<Models.FileInformation>();
-                _appState.filesMissingFromClient = Array.Empty<Models.FileInformation>();
+                _appState.ToBeDeleted = Array.Empty<Models.FileInformation>();
+                _appState.FilesMissingFromClient = Array.Empty<Models.FileInformation>();
 
                 App.Invoke(() =>
                 {

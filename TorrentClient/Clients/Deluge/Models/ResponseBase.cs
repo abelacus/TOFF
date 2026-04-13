@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace TorrentClient.Clients.Deluge.Models
 {
@@ -10,8 +7,8 @@ namespace TorrentClient.Clients.Deluge.Models
         [JsonPropertyName("id")]
         public int Id { get; set; }
         [JsonPropertyName("result")]
-        public T Result { get; set; }
+        public required T Result { get; set; }
         [JsonPropertyName("error")]
-        public ResponseError Error { get; set; }
+        public ResponseError? Error { get; set; }
     }
 }
