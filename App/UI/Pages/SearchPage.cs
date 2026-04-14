@@ -121,9 +121,12 @@ namespace TOFF.UI.Pages
                 errorDialog.Add(errorLabel);
                 errorDialog.AddButton(new() { Title = "Ok" });
 
-                errorDialog.Buttons[0].Activating += (_, e) =>
+                errorDialog.IsRunningChanging += (_, e) =>
                 {
-                    _navigationService.NavigateBack();
+                    if (!e.NewValue)
+                    {
+                        _navigationService.NavigateBack();
+                    }
                 };
 
                 if (!token.IsCancellationRequested)
@@ -153,6 +156,9 @@ namespace TOFF.UI.Pages
                 statusLabel.Text = "Getting files in torrents...";
             });
 
+
+            float progress = 0f;
+            float offset = 1f / details.Length / 2.5f;
             //request data from torrents
             foreach (var needed in details)
             {
@@ -182,14 +188,21 @@ namespace TOFF.UI.Pages
                     }
                 }
 
-                App.Invoke(() =>
+                progress += offset; //2.5 because we want it to be 40% of the bar
+
+                if (progress >= 0.05f)
                 {
-                    progressBar.Fraction += 1f / details.Length / 2.5f; //2.5 because we want it to be 40% of the bar
-                });
+                    App.Invoke(() =>
+                    {
+                        progressBar.Fraction += progress;
+                    });
+                    progress = 0;
+                }
             }
 
             App.Invoke(() =>
             {
+                progressBar.Fraction = 0.5f;
                 statusLabel.Text = "Getting details of missing files...";
             });
 
@@ -199,6 +212,8 @@ namespace TOFF.UI.Pages
                           select f;
       
             List<FileInformation> missingInformation = new List<FileInformation>();
+            progress = 0f;
+            offset = 1f / missing.Count() / 2.5f;
             foreach (var item in missing)
             {
                 if (token.IsCancellationRequested)
@@ -207,10 +222,16 @@ namespace TOFF.UI.Pages
                 }
                 missingInformation.Add(FileInfoService.GetFileInfo(item));
 
-                App.Invoke(() =>
+                progress += offset;
+
+                if (progress >= 0.05f) //UI completely stops rendering if there's lots of files so group updates
                 {
-                    progressBar.Fraction += 1f / missing.Count() / 2.5f;
-                });
+                    App.Invoke(() =>
+                    {
+                        progressBar.Fraction += progress;
+                    });
+                    progress = 0;
+                }
             }
 
             _appState.FilesMissingFromClient = missingInformation.ToArray();

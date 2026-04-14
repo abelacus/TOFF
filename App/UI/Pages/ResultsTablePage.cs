@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
-using Terminal.Gui.Configuration;
+﻿using Terminal.Gui.Configuration;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
@@ -32,7 +28,6 @@ namespace TOFF.UI.Pages
                 MultiSelect = true,
                 
                 FullRowSelect = true,
-                CollectionNavigator = null,
             };
             table.KeyBindings.ReplaceCommands(Key.Space, Command.Toggle);
             table.Style.AlwaysShowHeaders = true;
@@ -82,10 +77,28 @@ namespace TOFF.UI.Pages
 
             table.KeyDown += (_, e) =>
             {
+                //remove unwanted keybinds
+                if (e.KeyCode == Key.CursorLeft || e.KeyCode == Key.CursorRight || e.KeyCode == Key.CursorLeft.WithShift || e.KeyCode == Key.CursorRight.WithShift)
+                {
+                    e.Handled = true;
+                }
+                
+                if (e.KeyCode == Key.CursorUp.WithShift )
+                {
+                    table.SelectedRow -= 1;
+                    table.SetNeedsDraw();
+                    e.Handled = true;
+                }
+                if (e.KeyCode == Key.CursorDown.WithShift )
+                {
+                    table.SelectedRow += 1;
+                    table.SetNeedsDraw();
+                    e.Handled = true;
+                }
                 //because the default select all works weirdly, add each item individually instead.
                 if (e.KeyCode == Key.A.WithCtrl)
                 {
-                    if(table.MultiSelectedRegions.Count() == table.Table.Rows)
+                    if(table.MultiSelectedRegions.Sum(e => e.Rectangle.Height) == table.Table.Rows)
                     {
                         table.MultiSelectedRegions.Clear();
                         table.SetNeedsDraw();
@@ -95,10 +108,12 @@ namespace TOFF.UI.Pages
 
                     //add all not-selected entries to the list. might have performance issues on large numbers of files.
                     var selected = table.MultiSelectedRegions.Select(e => e.Origin.Y);
+                    
                     for (int i = 0; i < table.Table.Rows; i++)
                     {
                         if(!selected.Any(e => e == i))
                         {
+                            //TODO: figure out a way to speed this up with large numbers of items. 
                             table.MultiSelectedRegions.Push(new TableSelection(new System.Drawing.Point(0, i), new System.Drawing.Rectangle(0, i, 1, 1)) { IsToggled = true });
                         }
                     }
@@ -231,7 +246,7 @@ namespace TOFF.UI.Pages
 
                 _navigationService.RunDialog(infoPopup);
 
-                if(infoPopup.Result != 1 && infoPopup.Canceled == false)
+                if(infoPopup.Result == 0)
                 {
                     table.NewKeyDownEvent(Key.Space);
                 }

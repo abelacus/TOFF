@@ -31,16 +31,17 @@ namespace TOFF.Services
         }
 
         public void Init<T>() where T : View
-        { 
-            using IApplication app = Application.Create().Init(DriverRegistry.Names.DOTNET);
-            _application = app;
-            _top = new Runnable();
-            app.Mouse.IsMouseDisabled = true;
+        {
+            using (IApplication app = Application.Create().Init(DriverRegistry.Names.DOTNET))
+            {
+                _application = app;
+                _top = new ();
+                app.Mouse.IsMouseDisabled = true;
 
-            NavigateTo<T>();
-
-            app.Run(_top);
-            app.Dispose();
+                NavigateTo<T>();
+                app.Run(_top);
+                app.Dispose();
+            };
         }
 
         /// <summary>
