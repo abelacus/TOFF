@@ -40,8 +40,8 @@ namespace TOFF.UI.Pages
             //    Disabled = new Terminal.Gui.Drawing.Attribute(Color.Blue, Color.White),
             //};
 
-            Scheme selectedStyle = new Scheme(new Terminal.Gui.Drawing.Attribute(new Color(34, 90, 109), StandardColor.AmberPhosphor));
-            Scheme selectedCursor = new Scheme(new Terminal.Gui.Drawing.Attribute(StandardColor.CornflowerBlue, StandardColor.HoneyDew));
+            Scheme selectedStyle = new Scheme(SchemeManager.GetScheme(Schemes.Base).HotActive);
+            Scheme selectedCursor = new Scheme(SchemeManager.GetScheme(Schemes.Base).HotFocus);
 
             table.Style.ColumnStyles[0] = new ColumnStyle
             {
@@ -136,7 +136,7 @@ namespace TOFF.UI.Pages
 
                 Scheme textViewScheme = new Scheme()
                 {
-                    ReadOnly = new Terminal.Gui.Drawing.Attribute(StandardColor.LightBlue, StandardColor.RaisinBlack)
+                    ReadOnly = SchemeManager.GetScheme(Schemes.Dialog).Normal
                 };
 
                 Dialog infoPopup = new Dialog()
@@ -302,7 +302,7 @@ namespace TOFF.UI.Pages
                 Y = Pos.Center(),
             };
 
-            errorDialog.SetScheme(SchemeManager.GetScheme("Error"));
+            errorDialog.SetScheme(SchemeManager.GetScheme(Schemes.Error));
 
             Label errorLabel = new Label()
             {

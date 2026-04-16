@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using Terminal.Gui.Configuration;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
@@ -106,8 +107,8 @@ namespace TOFF.UI.Pages
                     Y = Pos.Center(),
                 };
 
-                errorDialog.SetScheme(new Scheme(new Terminal.Gui.Drawing.Attribute(StandardColor.BrightRed, StandardColor.RaisinBlack)));
-
+                errorDialog.SetScheme(SchemeManager.GetScheme(Schemes.Error));
+                
                 //validate current settings
                 Label errorLabel = new Label()
                 {

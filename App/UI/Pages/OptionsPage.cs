@@ -1,4 +1,5 @@
-﻿using Terminal.Gui.Drawing;
+﻿using Terminal.Gui.Configuration;
+using Terminal.Gui.Drawing;
 using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
@@ -92,7 +93,7 @@ namespace TOFF.UI.Pages
                         e.Cells[i] = new Cell
                         {
                             Grapheme = cell.Grapheme,
-                            Attribute = new Terminal.Gui.Drawing.Attribute(StandardColor.CadetBlue, StandardColor.RaisinBlack, TextStyle.None),
+                            Attribute = new Terminal.Gui.Drawing.Attribute(SchemeManager.GetScheme(Schemes.Base).ReadOnly.Foreground, SchemeManager.GetScheme(Schemes.Base).Normal.Background, TextStyle.None),
                             IsDirty = cell.IsDirty
                         };
                     }
@@ -191,7 +192,7 @@ namespace TOFF.UI.Pages
                 Y = Pos.Center(),
             };
 
-            errorDialog.SetScheme(new Scheme(new Terminal.Gui.Drawing.Attribute(StandardColor.BrightRed, StandardColor.RaisinBlack)));
+            errorDialog.SetScheme(SchemeManager.GetScheme(Schemes.Error));
 
             //validate current settings
             if (_appState.Preferences.TorrentClientConfig.ApiUrl == null || _appState.Preferences.TorrentClientConfig.ApiUrl.Length == 0)

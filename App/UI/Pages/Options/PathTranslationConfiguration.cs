@@ -1,10 +1,12 @@
 ﻿using System.Collections.ObjectModel;
+using Terminal.Gui.Configuration;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 using TOFF.Models;
 using TOFF.Services;
+using Attribute = Terminal.Gui.Drawing.Attribute;
 
 namespace TOFF.UI.Pages.Options
 {
@@ -233,7 +235,7 @@ namespace TOFF.UI.Pages.Options
                         Y = Pos.Center(),
                     };
 
-                    errorDialog.SetScheme(new Scheme(new Terminal.Gui.Drawing.Attribute(StandardColor.BrightRed, StandardColor.RaisinBlack)));
+                    errorDialog.SetScheme(SchemeManager.GetScheme(Schemes.Error));
 
                     var errorLabel = new Label()
                     {
@@ -261,7 +263,7 @@ namespace TOFF.UI.Pages.Options
                         Y = Pos.Center(),
                     };
 
-                    errorDialog.SetScheme(new Scheme(new Terminal.Gui.Drawing.Attribute(StandardColor.BrightRed, StandardColor.RaisinBlack)));
+                    errorDialog.SetScheme(SchemeManager.GetScheme(Schemes.Error));
 
                     var errorLabel = new Label()
                     {
@@ -481,7 +483,7 @@ namespace TOFF.UI.Pages.Options
                         Y = Pos.Center(),
                     };
 
-                    errorDialog.SetScheme(new Scheme(new Terminal.Gui.Drawing.Attribute(StandardColor.BrightRed, StandardColor.RaisinBlack)));
+                    errorDialog.SetScheme(SchemeManager.GetScheme(Schemes.Error));
 
                     var errorLabel = new Label()
                     {
@@ -580,12 +582,19 @@ namespace TOFF.UI.Pages.Options
                 Text = "IMPORTANT: Automatic translation is performed when the torrent client is on windows and TOFF is\n" +
                        "running on linux such that e.g. C:\\ gets converted to /c/ prior to applying any translations."
             };
-            autoTranslateLabel.SetScheme(new Scheme(new Terminal.Gui.Drawing.Attribute(StandardColor.BrightRed, StandardColor.RaisinBlack)));
+
+            Scheme errorScheme = new Scheme(SchemeManager.GetScheme(Schemes.Error))
+            {
+                Normal = new Attribute(SchemeManager.GetScheme(Schemes.Error).Normal.Foreground, SchemeManager.GetScheme(Schemes.Dialog).Normal.Background, SchemeManager.GetScheme(Schemes.Error).Active.Style)
+            };
+            
+            autoTranslateLabel.SetScheme(errorScheme);
 
             infoPopup.Add(instructionLabel, autoTranslateLabel);
             infoPopup.AddButton(new Button() { Text = "OK" });
 
-
+            infoPopup.SetScheme(SchemeManager.GetScheme(Schemes.Dialog));
+            
             _navigationService.RunDialog(infoPopup);
 
         }
