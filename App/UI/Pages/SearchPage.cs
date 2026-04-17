@@ -159,8 +159,9 @@ namespace TOFF.UI.Pages
 
 
             float progress = 0f;
-            float offset = 1f / details.Length / 2.5f;
+            float offset = 1f / details.Length / 2.5f; //2.5 because we want it to be 40% of the bar
             //request data from torrents
+            Debug.WriteLine($"Getting files for {details.Length} torrents");
             foreach (var needed in details)
             {
                 if (token.IsCancellationRequested)
@@ -189,17 +190,25 @@ namespace TOFF.UI.Pages
                     }
                 }
 
-                progress += offset; //2.5 because we want it to be 40% of the bar
+                progress += offset; 
 
                 if (progress >= 0.05f)
                 {
-                    App.Invoke(() =>
-                    {
-                        progressBar.Fraction += progress;
-                    });
+                    Debug.WriteLine($"get torrent files {(progressBar.Fraction - 0.1) * 250}%");
                     progress = 0;
                 }
+
+                if (!token.IsCancellationRequested) //causes a crash if token is cancelled prior to this but after iteration starts
+                {
+                    App.Invoke(() =>
+                    {
+                        progressBar.Fraction += offset;
+                        progressBar.SetNeedsDraw();
+                    });
+                }
             }
+            
+            Debug.WriteLine($"Found {allTorrentFiles.Count} files within torrents");
 
             App.Invoke(() =>
             {
@@ -207,14 +216,17 @@ namespace TOFF.UI.Pages
                 statusLabel.Text = "Getting details of missing files...";
             });
 
+
+            HashSet<string> fileSet = new HashSet<string>(allTorrentFiles.Select(e => e.QualifiedPath).ToList());
+            
             //walk through torrentDirectory
             var missing = from f in Directory.EnumerateFiles(_appState.Preferences.TorrentDirectory!, "*", SearchOption.AllDirectories)
-                          where !allTorrentFiles.Any(e => e.QualifiedPath == f)
+                          where !fileSet.Contains(f)
                           select f;
       
             List<FileInformation> missingInformation = new List<FileInformation>();
-            progress = 0f;
             offset = 1f / missing.Count() / 2.5f;
+            Debug.WriteLine($"Getting details for {missing.Count()} files not found in torrents");
             foreach (var item in missing)
             {
                 if (token.IsCancellationRequested)
@@ -223,16 +235,11 @@ namespace TOFF.UI.Pages
                 }
                 missingInformation.Add(FileInfoService.GetFileInfo(item));
 
-                progress += offset;
-
-                if (progress >= 0.05f) //UI completely stops rendering if there's lots of files so group updates
+                
+                App.Invoke(() =>
                 {
-                    App.Invoke(() =>
-                    {
-                        progressBar.Fraction += progress;
-                    });
-                    progress = 0;
-                }
+                    progressBar.Fraction += offset;
+                });
             }
 
             _appState.FilesMissingFromClient = missingInformation.ToArray();
