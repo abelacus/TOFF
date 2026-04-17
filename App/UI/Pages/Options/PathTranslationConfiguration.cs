@@ -25,7 +25,7 @@ namespace TOFF.UI.Pages.Options
 
             Title = "Path Translations";
 
-            _translations = _appState.Preferences.PathTranslations;
+            _translations = new(_appState.Preferences.PathTranslations);
 
             ListView translationList = new ListView()
             {
@@ -69,7 +69,7 @@ namespace TOFF.UI.Pages.Options
             Shortcut addNewShortcut = new Shortcut()
             {
                 Action = AddNewTranslation,
-                Key = Key.A,
+                Key = Key.A.WithAlt,
                 Text = "Add Translation",
             };
 
@@ -106,7 +106,7 @@ namespace TOFF.UI.Pages.Options
             Dialog translationWizard = new Dialog()
             {
                 Title = "Add Path Translation",
-                Width = Dim.Percent(50),
+                Width = 60,
             };
 
             translationWizard.Padding.Thickness = new Thickness(2, 1, 2, 1);
@@ -165,7 +165,7 @@ namespace TOFF.UI.Pages.Options
                 Title = "Select Folder"
             };
 
-            directorySelectButton.Activating += (_, e) =>
+            directorySelectButton.Accepting += (_, e) =>
             {
                 string? selectedDirectory = ShowFolderSelectPopup(localPath.Text.Length > 0 ? localPath.Text : null);
                 if(selectedDirectory != null)
@@ -224,7 +224,7 @@ namespace TOFF.UI.Pages.Options
             translationWizard.AddButton(cancelButton);
             translationWizard.AddButton(submitButton);
 
-            submitButton.Activating += (_, e) =>
+            submitButton.Accepting += (_, e) =>
             {
                 if (clientPath.Text.Length == 0)
                 {
@@ -343,8 +343,8 @@ namespace TOFF.UI.Pages.Options
             Dialog updateWizard = new Dialog()
             {
                 Title = "Edit Path Translation",
-                Width = Dim.Percent(50),
-                Height = Dim.Percent(50),
+                Width = 60,
+                //Height = Dim.Percent(50),
             };
 
             updateWizard.Padding.Thickness = new Thickness(2, 1, 2, 1);
@@ -406,7 +406,7 @@ namespace TOFF.UI.Pages.Options
                 Title = "Select Folder"
             };
 
-            directorySelectButton.Activating += (_, e) =>
+            directorySelectButton.Accepting += (_, e) =>
             {
                 string? selectedDirectory = ShowFolderSelectPopup(localPath.Text.Length > 0 ? localPath.Text : null);
                 if (selectedDirectory != null)
