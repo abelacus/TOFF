@@ -117,7 +117,7 @@ namespace TOFF.Services.FileInfoHandlers
 
         public FileInformation GetFileInfo(string filePath)
         {
-            uint mask = 0x0004U & 0x0080U & 0x0040U & 0x0020U; //STATX_NLINK, STATX_CTIME, STATX_MTIME, STATX_ATIME. values from statx-generic.h
+            uint mask = 0x0004U | 0x0080U | 0x0040U | 0x0020U; //STATX_NLINK, STATX_CTIME, STATX_MTIME, STATX_ATIME. values from statx-generic.h
 
             statx(0, filePath, 0, mask, out var info); //dirfd is 0 since filepaths should all be absolute. 
 
