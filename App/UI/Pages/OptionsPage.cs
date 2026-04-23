@@ -6,6 +6,7 @@ using Terminal.Gui.Views;
 using TOFF.Models;
 using TOFF.Services;
 using TOFF.UI.Pages.Options;
+using TOFF.UI.Views;
 
 namespace TOFF.UI.Pages
 {
@@ -122,10 +123,10 @@ namespace TOFF.UI.Pages
                     if (e.Tree.Objects.Contains(e.OldValue) && e.OldValue == parent)
                     {
                         //select next entry
-                        var index = options.IndexOf(e => e.Text == parent.Text);
+                        var index = options.IndexOf(c => c.Text == parent.Text);
                         if(index + 1 < options.Length)
                         {
-                            e.Tree.GoTo(e.Tree.Objects.First(e => e.Text == options[index + 1].Text));
+                            e.Tree.GoTo(e.Tree.Objects.First(c => c.Text == options[index + 1].Text));
                         }
                         else
                         {
@@ -160,13 +161,14 @@ namespace TOFF.UI.Pages
             Shortcut nextStep = new Shortcut()
             {
                 Action = SearchAndDisplayResults,
-                Key = Key.N.WithCtrl.WithAlt,
+                Key = Key.N.WithAlt,
                 Text = "Find Orphans",
             };
 
-            Label versionLabel = new Label()
+            Shortcut versionLabel = new Shortcut()
             {
-                Title = "v0.0.1",
+                Action = DisplayVersionInfo,
+                Text = "v0.0.1",
             };
             versionLabel.Padding.Thickness = new Thickness(0, 0, 2, 0);
 
@@ -180,11 +182,69 @@ namespace TOFF.UI.Pages
             _appState.SavePreferences();
             _navigationService.NavigateBack();
         }
+
+        private void DisplayVersionInfo()
+        {
+            Dialog infoDialog = new Dialog()
+            {
+                Title = "About",
+                X = Pos.Center(),
+                Y = Pos.Center(),
+            };
+
+            View infoCard = new View()
+            {
+                Width = Dim.Auto(),
+                Height = Dim.Auto(),
+            };
+
+            Label name = new Label()
+            {
+                Text = "Torrent Orphan File Finder",
+                X = 0,
+                Y = 0
+            };
+            Label version = new Label()
+            {
+                Text = "Version: 0.0.1",
+                X = 0,
+                Y = Pos.Bottom(name) + 1
+            };
+            Label license = new Label()
+            {
+                Text = "License: GPLv3",
+                X = 0,
+                Y = Pos.Bottom(version)
+            };
+            Label githubLink = new Label()
+            {
+                Text = "Source: github.com/abelacus/TOFF",
+                X = 0,
+                Y = Pos.Bottom(license),
+            };
+
+            infoCard.Add(name, version, githubLink);
+            
+            QrCode qrCode = new QrCode("https://github.com/abelacus/TOFF")
+            {
+                X = Pos.Right(infoCard) + 2
+            };
+            Label qrCodeLabel = new Label()
+            {
+                Text = "GitHub",
+                X = Pos.Left(qrCode),
+                Y = Pos.Bottom(qrCode),
+            };
+            
+            infoDialog.Add(infoCard, qrCode, qrCodeLabel);
+
+            infoDialog.AddButton(new Button() { Title = "Close" });
+
+            _navigationService.RunDialog(infoDialog);
+        }
         
         private void SearchAndDisplayResults()
         {
-
-
             Dialog errorDialog = new Dialog()
             {
                 Title = "Required parameters not set",
@@ -214,7 +274,7 @@ namespace TOFF.UI.Pages
                 //show popup
             }
 
-            if(_appState.Preferences.TorrentDirectory == null || _appState.Preferences.TorrentDirectory.Length == 0)
+            if(string.IsNullOrEmpty(_appState.Preferences.TorrentDirectory))
             {
                 Label errorLabel = new Label()
                 {
