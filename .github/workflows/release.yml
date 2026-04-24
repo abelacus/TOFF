@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  
+  push:
+    branches:
+      - release
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            runtime: win-x64
+            artifact-name: windows
+            ext: zip
+          - os: ubuntu-latest
+            runtime: linux-x64
+            artifact-name: linux
+            ext: tar.gz
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Download Dependencies
+        working-directory: ./App
+        run: dotnet restore
+
+      - name: Build Release
+        working-directory: ./App
+        run: dotnet publish TOFF.csproj -p:DebugType=None -p:DebugSymbols=false -p:VersionSuffix="${{ github.ref_name }}" -c Release -r ${{ matrix.runtime }} --sc -o ./bin/Release/publish
+
+      - name: Archive (Windows)
+        if: matrix.os == 'windows-latest'
+        working-directory: ./App
+        run: Compress-Archive -Path ./bin/Release/publish/* -DestinationPath TOFF-${{ matrix.artifact-name }}-${{ github.ref_name }}.zip
+
+      - name: Archive (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        working-directory: ./App
+        run: tar -czvf TOFF-${{ matrix.artifact-name }}-${{ github.ref_name }}.tar.gz -C ./bin/Release/publish .
+
+      - name: Upload Archive
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-asset-${{ matrix.artifact-name }}
+          path: TOFF-${{ matrix.artifact-name }}-${{ github.ref_name }}.{{ matrix.ext }}
+
+  create-release:
+    needs: build-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: ./assets
+          merge-multiple: true
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with: 
+          files: ./assets/*
+          draft: true
+  

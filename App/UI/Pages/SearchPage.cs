@@ -1,0 +1,292 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text;
+using Terminal.Gui.Configuration;
+using Terminal.Gui.Drawing;
+using Terminal.Gui.Input;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
+using TOFF.Models;
+using TOFF.Services;
+using TorrentClient;
+using TorrentClient.Models;
+
+namespace TOFF.UI.Pages
+{
+    /// <summary>
+    /// Displays a loading bar whilst we query the torrent client for the available torrents and compare with files in the <see cref="Services.AppStateService.torrentDirectory"/>
+    /// </summary>
+    internal class SearchPage : Window, IPage
+    {
+        private readonly AppStateService _appState;
+        private readonly NavigationService _navigationService;
+        private readonly TorrentClientService _clientService;
+
+        private ProgressBar progressBar;
+        private Label statusLabel;
+
+        private CancellationTokenSource _cts = new CancellationTokenSource();
+
+        public SearchPage(AppStateService appstate, NavigationService navigationService, TorrentClientService torrentClientService)
+        {
+            _appState = appstate;
+            _navigationService = navigationService;
+            _clientService = torrentClientService;
+
+            progressBar = new ProgressBar()
+            {
+                X = Pos.Center(),
+                Y = Pos.Center(),
+                Width = Dim.Percent(60),
+                ProgressBarStyle = ProgressBarStyle.Continuous,
+                ProgressBarFormat = ProgressBarFormat.Simple,
+                Fraction = 0f,
+            };
+
+            statusLabel = new Label()
+            {
+                X = Pos.Left(progressBar),
+                Y = Pos.Top(progressBar) - 2,
+                Text = "Logging in to client...",
+            };
+
+            Add(statusLabel, progressBar);
+
+            Shortcut backShortcut = new Shortcut()
+            {
+                Y = Pos.AnchorEnd(),
+                Key = Key.Esc,
+                Action = () => { _cts.Cancel(); _navigationService.NavigateBack(); }
+            };
+
+            Add(backShortcut);
+
+            //Do this in a seperate thread because it might take a while
+            Task.Run(() =>
+            {
+                try
+                {
+                    if (CreateAndConnectTorrentClient(_cts.Token))
+                    {
+                        GetAndProcessClientData(_cts.Token);
+                    }
+                }
+                catch(OperationCanceledException e)
+                {
+                    Debug.WriteLine("Cancelled");
+                }
+            }, _cts.Token);
+
+
+        }
+
+        private bool CreateAndConnectTorrentClient(CancellationToken token)
+        {
+            try
+            {
+                _appState.TorrentClient = _clientService.CreateClientInstance(_appState.Preferences.ClientSelection, _appState.Preferences.TorrentClientConfig);
+            
+                _appState.TorrentClient.ConnectToClient().Wait();
+                if (token.IsCancellationRequested)
+                {
+                    return false;
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.InnerException);
+
+                //likely unable to connect
+                Dialog errorDialog = new Dialog()
+                {
+                    Title = "Unable to connect to client",
+                    X = Pos.Center(),
+                    Y = Pos.Center(),
+                };
+
+                errorDialog.SetScheme(SchemeManager.GetScheme(Schemes.Error));
+                
+                //validate current settings
+                Label errorLabel = new Label()
+                {
+                    Text = "An error occured while connecting to torrent client\nCheck login details and url and try again",
+                    X = Pos.Center() + 1,
+                    Y = 1,
+                    Height = 2,
+                    CanFocus = false,
+                };
+
+                errorDialog.Add(errorLabel);
+                errorDialog.AddButton(new() { Title = "Ok" });
+
+                errorDialog.IsRunningChanging += (_, e) =>
+                {
+                    if (!e.NewValue)
+                    {
+                        _navigationService.NavigateBack();
+                    }
+                };
+
+                if (!token.IsCancellationRequested)
+                {
+                    _navigationService.RunDialog(errorDialog);
+                }
+
+                return false;
+            }
+
+        }
+
+
+        private void GetAndProcessClientData(CancellationToken token)
+        {
+            //get number of files/directories in torrentDirectory
+            int estimatedDirectoryItemCount = Directory.GetFiles(_appState.Preferences.TorrentDirectory!).Length + Directory.GetDirectories(_appState.Preferences.TorrentDirectory!).Length;
+
+            //get number of torrents in Client
+            TorrentDetails[] details = _appState.TorrentClient.GetTorrentDetails().Result;
+
+            List<FileDetails> allTorrentFiles = new List<FileDetails>();
+
+            App.Invoke(() =>
+            {
+                progressBar.Fraction = 0.1f;
+                statusLabel.Text = "Getting files in torrents...";
+            });
+
+
+            float progress = 0f;
+            float offset = 1f / details.Length / 2.5f; //2.5 because we want it to be 40% of the bar
+            //request data from torrents
+            Debug.WriteLine($"Getting files for {details.Length} torrents");
+            foreach (var needed in details)
+            {
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                if (_appState.Preferences.IgnoreDirectories.Any(e => e == needed.SavePath))
+                {
+                    continue;
+                }
+
+                //migrate the base path to match the current OS form
+                //required because e.g. if the torrent client is on windows but the application is on linux, Path.Join will return the working directory + basePath.
+                needed.SavePath = ConvertPathToLocalForm(needed.SavePath);
+
+                FileDetails[] fileDetails = _appState.TorrentClient.GetFilesForTorrent(needed).Result;
+
+                foreach (FileDetails file in fileDetails)
+                {
+                    //priority 0 is 'do not download' so we should be good to ignore them.
+                    if (file.Priority != 0)
+                    {
+                        file.SavePath = TranslatePath(file.SavePath);
+                        allTorrentFiles.Add(file);
+                    }
+                }
+
+                progress += offset; 
+
+                if (progress >= 0.05f)
+                {
+                    Debug.WriteLine($"get torrent files {(progressBar.Fraction - 0.1) * 250}%");
+                    progress = 0;
+                }
+
+                if (!token.IsCancellationRequested) //causes a crash if token is cancelled prior to this but after iteration starts
+                {
+                    App.Invoke(() =>
+                    {
+                        progressBar.Fraction += offset;
+                        progressBar.SetNeedsDraw();
+                    });
+                }
+            }
+            
+            Debug.WriteLine($"Found {allTorrentFiles.Count} files within torrents");
+
+            App.Invoke(() =>
+            {
+                progressBar.Fraction = 0.5f;
+                statusLabel.Text = "Getting details of missing files...";
+            });
+
+
+            HashSet<string> fileSet = new HashSet<string>(allTorrentFiles.Select(e => e.QualifiedPath).ToList());
+            
+            //walk through torrentDirectory
+            var missing = from f in Directory.EnumerateFiles(_appState.Preferences.TorrentDirectory!, "*", SearchOption.AllDirectories)
+                          where !fileSet.Contains(f)
+                          select f;
+      
+            List<FileInformation> missingInformation = new List<FileInformation>();
+            offset = 1f / missing.Count() / 2.5f;
+            Debug.WriteLine($"Getting details for {missing.Count()} files not found in torrents");
+            foreach (var item in missing)
+            {
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+                missingInformation.Add(FileInfoService.GetFileInfo(item));
+
+                
+                App.Invoke(() =>
+                {
+                    progressBar.Fraction += offset;
+                });
+            }
+
+            _appState.FilesMissingFromClient = missingInformation.ToArray();
+
+            //once done, display data in a table.
+            if (!token.IsCancellationRequested)
+            {
+                _navigationService.NavigateTo(typeof(ResultsTablePage), false);
+            }
+        }
+
+        private string TranslatePath(string path)
+        {
+            foreach (var item in _appState.Preferences.PathTranslations)
+            {
+                if (path.StartsWith(item.Key))
+                {
+                    path = path.Replace(item.Key, item.Value);
+                    break; //not sure why there'd be any case where someone would want to translate an already translated value
+                }
+            }
+
+            return path;
+        }
+
+        private string ConvertPathToLocalForm(string path)
+        {
+            bool IsWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            if (IsWindows)
+            {
+                //TODO. need to decide how to handle these. will likely be considerably more difficult to do
+                return path;
+            }
+            else //linux/MacOS. may need additional check, not sure if they behave the same.
+            {
+                if (path.Contains(@"\")) //double slashes should mean windows url
+                {
+                    string replaced = path.Replace(@"\", "/");
+                    replaced = replaced.Replace(":", "");
+                    replaced = replaced.Insert(0, "/");
+
+                    return replaced;
+                }
+            }
+
+            return path;
+        }
+
+    }
+}

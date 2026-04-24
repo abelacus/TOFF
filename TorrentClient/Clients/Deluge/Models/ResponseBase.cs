@@ -1,0 +1,14 @@
+﻿using System.Text.Json.Serialization;
+
+namespace TorrentClient.Clients.Deluge.Models
+{
+    internal record ResponseBase<T>
+    {
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+        [JsonPropertyName("result")]
+        public required T Result { get; set; }
+        [JsonPropertyName("error")]
+        public ResponseError? Error { get; set; }
+    }
+}
