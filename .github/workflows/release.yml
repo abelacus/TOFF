@@ -57,7 +57,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: release-asset-${{ matrix.artifact-name }}
-          path: TOFF-${{ matrix.artifact-name }}-${{ github.ref_name }}.{{ matrix.ext }}
+          path: TOFF-${{ matrix.artifact-name }}-${{ github.ref_name }}.${{ matrix.ext }}
 
   create-release:
     needs: build-release
